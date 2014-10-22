@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#Copyright (c) Timothy Savannah under LGPL, All Rights Reserved. See LICENSE for more information
 
 import glob
 import multiprocessing
