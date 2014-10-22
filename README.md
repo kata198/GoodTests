@@ -35,7 +35,7 @@ All Test classes must begin or end with the word "Test" (example: TestMagic)
 See "test\_Magic.py" for an example.
 
 
-Output will contain all the failures as they happen, and a consolidated list at the end:
+Output will contain colours, and lists all the failures (or passes) as they happen, and a consolidated list at the end:
 
 Example:
 
