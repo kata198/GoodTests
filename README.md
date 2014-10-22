@@ -10,6 +10,13 @@ Also supports more modern forms, setup/teardown\_[CLASSNAME] and setup/teardown\
 
 The setup and teardown functions run REGARDLESS of whether the method itself was a success (contrary to some other unit testing frameworks).
 
+All Test classes must begin or end with the word "Test" (example: TestMagic)
+
+Assertions should use the "assert" keyword in python (example: assert 1 != 2)
+
+See "test\_Magic.py" for an example.
+
+
 
 	$ python GoodTests.py --help
 	Usage:  GoodTests.py (options) [filesnames or directories]
@@ -30,9 +37,6 @@ GoodTests can be used with -n to do multiple simultanious executions (one proces
 
 GoodTests.py can be pointed toward any directory, and will load all files prefixed with test\_ (example: test\_Something.py)
 
-All Test classes must begin or end with the word "Test" (example: TestMagic)
-
-See "test\_Magic.py" for an example.
 
 
 Output will contain colours, and lists all the failures (or passes) as they happen, and a consolidated list at the end:
