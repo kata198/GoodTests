@@ -8,16 +8,16 @@ It supports parallel execution, regular expression filtering, and provides class
 Each class runs as a separate process, which can save a lot of time in data generation, and early failure prediction.
 
 *Some Features*
-# It makes use of the "assert" keyword instead of other frameworks which have obtuse methods (like self.assertEquals)
-# Colour output
-# It supports running only methods that match a given regular expression.
-# It supports discovery of all tests within a directory.
-# Drop-in replacement for existing py.test/unit tests
-# Tests extend "object". The tests themselves don't actually import any part of GoodTests.
-# License is LGPL
-# Supports python 2 and python 3.
-# Runs tests in parallel
-# Each test class (should have one per file) runs in the same process. This allows you to get more performance by not setting up and tearing down similar data for each function, and allows sharing of state and knowledge (like if test_constructor fails on a class, you know everything else is going to fail, so you can mark a flag "self.xWillFail" and assert at the beginning of functions.) Other advantages too
+	It makes use of the "assert" keyword instead of other frameworks which have obtuse methods (like self.assertEquals)
+	# Colour output
+	# It supports running only methods that match a given regular expression.
+	# It supports discovery of all tests within a directory.
+	# Drop-in replacement for existing py.test/unit tests
+	# Tests extend "object". The tests themselves don't actually import any part of GoodTests.
+	# License is LGPL
+	# Supports python 2 and python 3.
+	# Runs tests in parallel
+	# Each test class (should have one per file) runs in the same process. This allows you to get more performance by not setting up and tearing down similar data for each function, and allows sharing of state and knowledge (like if test_constructor fails on a class, you know everything else is going to fail, so you can mark a flag "self.xWillFail" and assert at the beginning of functions.) Other advantages too
 
 
 Each file should be in the form of test\_$$CLASSNAME$$.py (where $$CLASSNAME$$ is the name, e.g. "Magic"). The class within the file should either be prefixed or suffixed with the word "Test" (e.g: "TestMagic" or "MagicTest"). 
