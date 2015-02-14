@@ -17,12 +17,14 @@ try:
 except NameError:
     xrange = range
 
+COLOUR_RE = re.compile('\033\[[\d]+[m]')
+
 class GoodTests(object):
     '''
        Runs tests well.
     '''
 
-    def __init__(self, maxRunners=DEFAULT_MAX_RUNNERS, printFailuresOnly=False, extraTimes=False):
+    def __init__(self, maxRunners=DEFAULT_MAX_RUNNERS, printFailuresOnly=False, extraTimes=False, useColour=True):
         '''
             maxRunners is how many tests to execute simultaniously.
         '''
@@ -34,7 +36,7 @@ class GoodTests(object):
 
         # If only to show failures
         self.printFailuresOnly = printFailuresOnly
-        if printFailuresOnly:
+        if printFailuresOnly is True:
             devnull = open('/dev/null', 'w')
             sys.stdout = devnull
 
@@ -43,9 +45,13 @@ class GoodTests(object):
         self.extraTimes = extraTimes
         self.noFork = (maxRunners == 1)
 
+        self.useColour = useColour
+
 
     def output(self, text):
-            sys.stderr.write(text + '\n')
+        if self.useColour is False:
+            text = COLOUR_RE.sub('', text)
+        sys.stderr.write(text + '\n')
 
     def terminate(self):
         for (process, testName) in self.runningProcesses:
@@ -182,12 +188,12 @@ class GoodTests(object):
         self.output('Test results (%d of %d PASS) Took %f total seconds to run.\n\n' %(sum([int(x[1]) for x in testResults.values()]), sum([int(x[2]) for x in testResults.values()]), totalTimeEnd - totalTimeStart ) )
         self.output('Failing Tests:')
 
-        for fileName in testResults.keys():
-            failedResults = testResults[fileName]
+        for filename in testResults.keys():
+            failedResults = testResults[filename]
             totalFailed = len(failedResults[0].values())
             if not totalFailed:
                 continue
-            self.output('%s (%d FAILED):' %(fileName, totalFailed))
+            self.output('%s (%d FAILED):' %(filename, totalFailed))
             for testClassName in failedResults[0].keys():
                 testFailures = failedResults[0][testClassName]
                 self.output('\t%s (%d FAILED):' %(testClassName, len(testFailures)))
@@ -222,7 +228,7 @@ class GoodTests(object):
             timeStart = time.time()
             module = __import__(moduleName)
             timeEnd = time.time()
-            if self.extraTimes:
+            if self.extraTimes is True:
                 self.output("Import of " + moduleName + " took " + str(timeEnd-timeStart) + " seconds")
         except Exception as e:
             failedResults = {}
@@ -268,7 +274,7 @@ class GoodTests(object):
             if hasattr(instantiatedTestClass, 'setup_class'):
                 getattr(instantiatedTestClass, 'setup_class')()
             timeEnd = time.time()
-            if self.extraTimes:
+            if self.extraTimes is True:
                 self.output("setup_class took " + str(timeEnd - timeStart) + " seconds")
 
             # Old school python unittest general setup for class
@@ -285,7 +291,7 @@ class GoodTests(object):
                 timeStart = time.time()
                 (status, message) = self.runTestMethod(instantiatedTestClass, testFile, testFunctionName)
                 timeEnd = time.time()
-                if self.extraTimes:
+                if self.extraTimes is True:
                     self.output(testFunctionName + " took " + str(timeEnd - timeStart) + " seconds")
                 if status == 'FAIL':
                     if testClassName not in failedResults:
@@ -415,7 +421,12 @@ def printUsage():
            -m [regexp]              - Run methods matching a specific pattern
            -q                       - Quiet (only print failures)
            -t                       - Print extra timing information
-           --help                   - Show this screen
+
+           --no-colour              - Strip out colours from output
+           --no-color
+
+           --help                   - Show this message
+
 
 """ %(DEFAULT_MAX_RUNNERS,))
 
@@ -434,51 +445,68 @@ if __name__ == "__main__":
     printFailuresOnly = False
     specificTest = None
     extraTimes = False
+    useColour = True
 
-    if '--help' in sys.argv:
-        printUsage()
-        sys.exit(1)
 
-    if '-n' in sys.argv:
-        index = sys.argv.index('-n')
-        maxRunners = int(sys.argv[index+1])
-        del sys.argv[index + 1]
-        del sys.argv[index]
-    if '-q' in sys.argv:
-        printFailuresOnly = True
-        sys.argv.remove('-q')
-    if '-m' in sys.argv:
-        index = sys.argv.index('-m')
-        specificTest = sys.argv[index + 1]
-        del sys.argv[index + 1]
-        del sys.argv[index]
-    if '-t' in sys.argv:
-        extraTimes = True
-        sys.argv.remove('-t')
+    numArgs = len(sys.argv)
+    i = 1
+    
+    argPaths = []
+
+    while i < numArgs:
+        arg = sys.argv[i]
+
+        if arg in ('--help', '-h', '-?'):
+            printUsage()
+            sys.exit(0)
+        elif arg == '-n':
+            if i+1 == numArgs or sys.argv[i+1].isdigit() is False:
+                sys.stderr.write('-n requires a numeric argument\n')
+                sys.exit(1)
+            maxRunners = int(sys.argv[i+1])
+            i += 2
+        elif arg == '-q':
+            printFailuresOnly = True
+            i += 1
+        elif arg == '-m':
+            if i+1 == numArgs:
+                sys.stderr.write('-m needs a value\n')
+                sys.exit(1)
+            specificTest = sys.argv[i+1]
+            i += 2
+        elif arg == '-t':
+            extraTimes = True
+            i += 1
+        elif arg in ('--no-colour', '--no-color'):
+            useColour = False
+            i += 1
+        else:
+            argPaths.append(arg)
+            i += 1
 
     sys.path += ['.']
 
     # init tester
     global tester
-    tester = GoodTests(maxRunners=maxRunners, printFailuresOnly=printFailuresOnly, extraTimes=extraTimes)
+    tester = GoodTests(maxRunners=maxRunners, printFailuresOnly=printFailuresOnly, extraTimes=extraTimes, useColour=useColour)
 
     # Find directory to run
-    if len(sys.argv) == 1:
+    if len(argPaths) == 0:
         directories = ['.']
         files = []
     else:
-        if not os.path.exists(sys.argv[1]):
-            sys.stderr.write("Invalid filename or directory. '%s' does not exist.\n\n" %(sys.argv[1],))
-            printUsage()
-            sys.exit(1)
-
         directories = []
         files = []
-        for fileName in sys.argv[1:]:
-            if os.path.isdir(fileName):
-                directories.append(fileName)
+        for filename in argPaths:
+            if not os.path.exists(filename):
+                sys.stderr.write("Invalid filename or directory. '%s' does not exist.\n\n" %(filename,))
+                printUsage()
+                sys.exit(1)
+
+            if os.path.isdir(filename):
+                directories.append(filename)
             else:
-                files.append(fileName)
+                files.append(filename)
 
     # Run directory
     tester.runTests(directories, files, specificTest=specificTest)

@@ -1,4 +1,6 @@
-DO_PRINT = 0
+import os
+
+DO_PRINT = int(os.environ.get('DO_PRINT', 0))
 
 class TestMagic(object):
 
