@@ -21,6 +21,7 @@ Each class runs as a separate process, which can save a lot of time in data gene
 <li> Each test class (should have one per file) runs in the same process. This allows you to get more performance by not setting up and tearing down similar data for each function, and allows sharing of state and knowledge (like if test\_constructor fails on a class, you know everything else is going to fail, so you can mark a flag "self.xWillFail" and assert at the beginning of functions.) Other advantages too</li>
 </ul>
 
+GoodTests supports auto discovery of tests given a directory, by looking for files and classes that match the pattern (compatible with py.test)
 
 Each file should be in the form of test\_$$CLASSNAME$$.py (where $$CLASSNAME$$ is the name, e.g. "Magic"). The class within the file should either be prefixed or suffixed with the word "Test" (e.g: "TestMagic" or "MagicTest"). 
 
@@ -80,8 +81,8 @@ class TestMagic(object):
 	    print("--Setting up one")
 
     def test_one(self):
-	assert "one" != "magic"
-	assert "magic" == "magic"
+		assert "one" != "magic"
+		assert "magic" == "magic"
 
     def teardown_one(self):
 	if DO_PRINT:
@@ -89,16 +90,16 @@ class TestMagic(object):
 
 
     def test_WillFail(self):
-	assert 2 == 3
+		assert 2 == 3
 
     def test_popularity(self):
-	tim = 'abcsdfsd'
-	cool = 'abcsdfsd'
-	assert tim is cool
+		tim = 'abcsdfsd'
+		cool = 'abcsdfsd'
+		assert tim is cool
 
     def teardown_WillFail(self):
-	if DO_PRINT:
-	    print("--Tearing Down Will Fail")
+		if DO_PRINT:
+			print("--Tearing Down Will Fail")
 ```
 *Results*
 ```
