@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#Copyright (c) Timothy Savannah under LGPL, All Rights Reserved. See LICENSE for more information
+#Copyright 2011 (c) Timothy Savannah under LGPL, All Rights Reserved. See LICENSE for more information
 
 import glob
 import multiprocessing
@@ -288,7 +288,7 @@ class GoodTests(object):
                 if self.extraTimes:
                     self.output(testFunctionName + " took " + str(timeEnd - timeStart) + " seconds")
                 if status == 'FAIL':
-                    if not failedResults.has_key(testClassName):
+                    if testClassName not in failedResults:
                         failedResults[testClassName] = []
                     failedResults[testClassName].append((testFunctionName, message))
                 else:
