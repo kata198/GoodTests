@@ -19,6 +19,12 @@ except NameError:
 
 COLOUR_RE = re.compile('\033\[[\d]+[m]')
 
+VERSION_MAJOR = 1
+VERSION_MINOR = 1
+VERSION_PATCH = 0
+
+VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
+
 class GoodTests(object):
     '''
        Runs tests well.
@@ -453,11 +459,17 @@ if __name__ == "__main__":
     
     argPaths = []
 
+    helpArgs = set(['--help', '-h', '-?'])
+    versionArgs = set(['--version', '-v'])
+
     while i < numArgs:
         arg = sys.argv[i]
 
-        if arg in ('--help', '-h', '-?'):
+        if arg in helpArgs:
             printUsage()
+            sys.exit(0)
+        elif arg in versionArgs:
+            sys.stdout.write('GoodTests.py version %s by Timothy Savannah (c) 2011 LGPL version 2.1\n' %(VERSION,))
             sys.exit(0)
         elif arg == '-n':
             if i+1 == numArgs or sys.argv[i+1].isdigit() is False:
