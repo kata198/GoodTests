@@ -5,7 +5,7 @@ INSTALL_DIR=
 PROVIDED_PREFIX=
 
 print_usage() {
-	echo -en "install.sh: Installs Goodtests.py\n\n";
+	echo -en "install.sh: Installs GoodTests.py\n\n";
 	echo -en "Install Location:\n  Install location is determined by following means, in order:\n\n";
 	echo -e "    1. --install-dir=DIRECTORY             Installs the program into the given directory"
 	echo -e "    2. --prefix=PATH                       Installs program into \"PATH\"/bin. Ex: --prefix=/usr or --prefix=~/";
