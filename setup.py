@@ -1,6 +1,8 @@
 from setuptools import setup
 
 long_description = """
+GoodTests
+=========
 GoodTests is a fast python 2/3 compatible unit testing framework which I wrote to work around the shortcomings of other existing frameworks (like py.test and py unit test). It can serve as a drop-in replacement, without the need to modify any existing testcases (or very minimal modification).
 
 It supports parallel execution, regular expression filtering, and provides class-level encapsulation such that a corrupted python environment (such as mocking out DB function calls and whatnot) does not propigate to other tests. This was one of the issues I had found in py.test. And teardown didn't get called if the test failed, so catching cleanup was impossible. It supports both setup/teardown for an entire class, and per method.
@@ -53,17 +55,17 @@ GoodTests can be used with -n to do multiple simultanious executions (one proces
 
 -m will use a regular expression pattern to execute only methods matching the name -q will only print failures
 
-GoodTests.py can be pointed toward any directory, and will load all files prefixed with test_ (example: test_Something.py)
+GoodTests.py can be pointed toward any directory, and will load all files prefixed with test\_ (example: test_Something.py)
 
 Output will contain colours, and lists all the failures (or passes) as they happen, and a consolidated list at the end:
 
 Example Test test_Magic.py:
 
- |import os
+ | import os
  |
- |DO_PRINT = int(os.environ.get('DO_PRINT', 0))
+ | DO_PRINT = int(os.environ.get('DO_PRINT', 0))
  |
- |class TestMagic(object):
+ | class TestMagic(object):
  |
  |    def setup_TestMagic(self):
  |        if DO_PRINT:
@@ -97,47 +99,48 @@ Example Test test_Magic.py:
 
 Results:
 
- |    $ GoodTests.py test\_Magic.py
+ | $ GoodTests.py test\_Magic.py
  |
- |    test_Magic.py - TestMagic.test_WillFail FAIL *****Assertion Error*****
- |    Traceback (most recent call last):
- |      File "./GoodTests.py", line 371, in runTestMethod
- |        getattr(instantiatedTestClass, testFunctionName)()
- |      File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
- |        assert 2 == 3
- |    AssertionError
+ | test_Magic.py - TestMagic.test_WillFail FAIL *****Assertion Error*****
+ | Traceback (most recent call last):
+ |   File "./GoodTests.py", line 371, in runTestMethod
+ |     getattr(instantiatedTestClass, testFunctionName)()
+ |   File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
+ |     assert 2 == 3
+ | AssertionError
  |
- |    test_Magic.py - TestMagic.test_one PASS
- |    test_Magic.py - TestMagic.test_popularity PASS
- |
- |
- |    ==================================================
- |    Summary:
- |
- |    Test results (2 of 3 PASS) Took 0.000650 total seconds to run.
+ | test_Magic.py - TestMagic.test_one PASS
+ | test_Magic.py - TestMagic.test_popularity PASS
  |
  |
- |    Failing Tests:
- |    test_Magic.py (1 FAILED):
- |        TestMagic (1 FAILED):
- |           test_WillFail - 
- |            Traceback (most recent call last):
- |              File "./GoodTests.py", line 371, in runTestMethod
- |                getattr(instantiatedTestClass, testFunctionName)()
- |              File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
- |                assert 2 == 3
- |            AssertionError
+ | ==================================================
+ | Summary:
+ |
+ | Test results (2 of 3 PASS) Took 0.000650 total seconds to run.
+ |
+ |
+ | Failing Tests:
+ | test_Magic.py (1 FAILED):
+ |     TestMagic (1 FAILED):
+ |        test_WillFail - 
+ |         Traceback (most recent call last):
+ |           File "./GoodTests.py", line 371, in runTestMethod
+ |             getattr(instantiatedTestClass, testFunctionName)()
+ |           File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
+ |             assert 2 == 3
+ |         AssertionError
  |
  |
  |
- |    ==================================================
- |    Summary:
+ | ==================================================
+ | Summary:
  |
- |    Test results (2 of 3 PASS) Took 0.006250 total seconds to run.
+ | Test results (2 of 3 PASS) Took 0.006250 total seconds to run.
+
 """
 
 setup(name='GoodTests',
-        version='1.1.1',
+        version='1.1.2',
         scripts=['GoodTests.py'],
         author='Tim Savannah',
         author_email='kata198@gmail.com',
@@ -157,5 +160,6 @@ setup(name='GoodTests',
                       'Programming Language :: Python :: 2.7',
                       'Programming Language :: Python :: 3',
                       'Programming Language :: Python :: 3.4',
+                      'Topic :: Software Development :: Testing',
         ]
 )
