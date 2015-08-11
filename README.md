@@ -11,6 +11,7 @@ Each class runs as a separate process, which can save a lot of time in data gene
 <ul>
 <li>It makes use of the "assert" keyword instead of other frameworks which have obtuse methods (like self.assertEquals)</li>
 <li> Colour output</li>
+<li> Because "assert" keyword is used, failures can have associated messages. e.x. assert len(items) == 2, 'Expected 2 items, got %d' %(len(items),)</li>
 <li> It supports running only methods that match a given regular expression.</li>
 <li> It supports discovery of all tests within a directory.</li>
 <li> Drop-in replacement for existing py.test/unit tests</li>

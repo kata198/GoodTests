@@ -14,6 +14,7 @@ Some Features:
 
 *  It makes use of the "assert" keyword instead of other frameworks which have obtuse methods (like self.assertEquals)
 *  Colour output
+*  Because "assert" keyword is used, failures can have associated messages. e.x. assert len(items) == 2, 'Expected 2 items, got %d' %(len(items),)
 *  It supports running only methods that match a given regular expression.
 *  It supports discovery of all tests within a directory.
 *  Drop-in replacement for existing py.test/unit tests
@@ -85,7 +86,7 @@ Example Test test_Magic.py:
  |
  |
  |    def test_WillFail(self):
- |        assert 2 == 3
+ |        assert 2 == 3, 'Expected two to equal three'
  |
  |    def test_popularity(self):
  |        tim = 'abcsdfsd'
@@ -107,7 +108,7 @@ Results:
  |     getattr(instantiatedTestClass, testFunctionName)()
  |   File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
  |     assert 2 == 3
- | AssertionError
+ | AssertionError: Expected two to equal three
  |
  | test_Magic.py - TestMagic.test_one PASS
  | test_Magic.py - TestMagic.test_popularity PASS
@@ -140,7 +141,7 @@ Results:
 """
 
 setup(name='GoodTests',
-        version='1.1.2',
+        version='1.1.2.1',
         scripts=['GoodTests.py'],
         author='Tim Savannah',
         author_email='kata198@gmail.com',
