@@ -129,7 +129,7 @@ Results:
  |             getattr(instantiatedTestClass, testFunctionName)()
  |           File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
  |             assert 2 == 3
- |         AssertionError
+ |         AssertionError: Expected two to equal three
  |
  |
  |
