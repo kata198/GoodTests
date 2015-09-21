@@ -1,0 +1,5 @@
+* 1.1.2.2 Sep 20 2015
+ - Cleanup READMEs and make README.rst external
+ - Fix typo in help description
+ - Add MANIFEST.in to the project
+ - Add "distrib" directory, which contains 

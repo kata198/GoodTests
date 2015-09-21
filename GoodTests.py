@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#Copyright 2011 (c) Timothy Savannah under LGPL, All Rights Reserved. See LICENSE for more information
+#Copyright 2011, 2015 (c) Timothy Savannah under LGPLv2, All Rights Reserved. See LICENSE for more information
 
 import glob
 import multiprocessing
@@ -21,7 +21,11 @@ COLOUR_RE = re.compile('\033\[[\d]+[m]')
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 1
-VERSION_PATCH = 0
+VERSION_PATCH = 3
+
+__version__ = "1.1.3"
+
+__version_tuple__ = (1, 1, 3)
 
 VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
@@ -423,7 +427,7 @@ def printUsage():
 
          Options:
 
-           -n [number]              - Specifies number of simultanious executions (default: %d)
+           -n [number]              - Specifies number of simultaneous executions (default: %d)
            -m [regexp]              - Run methods matching a specific pattern
            -q                       - Quiet (only print failures)
            -t                       - Print extra timing information

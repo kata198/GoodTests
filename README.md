@@ -8,7 +8,7 @@ It supports parallel execution, regular expression filtering, and provides class
 Each class runs as a separate process, which can save a lot of time in data generation, and early failure prediction.
 
 Some Features:
-==============
+--------------
 
 *  It makes use of the "assert" keyword instead of other frameworks which have obtuse methods (like self.assertEquals)
 *  Colour output
@@ -40,7 +40,7 @@ See "test\_Magic.py" for an example:
 
 	Options:
 
-		-n [number]              - Specifies number of simultanious executions (default: 1)
+		-n [number]              - Specifies number of simultaneous executions (default: 1)
 		-m [regexp]              - Run methods matching a specific pattern
 		-q                       - Quiet (only print failures)
 		-t                       - Print extra timing information
@@ -50,13 +50,17 @@ See "test\_Magic.py" for an example:
 		--help                   - Show this screen
 
 
-GoodTests can be used with -n to do multiple simultanious executions (one process per test class)
+GoodTests can be used with -n to do multiple simultaneous executions (one process per test class)
 
 -m will use a regular expression pattern to execute only methods matching the name -q will only print failures
 
 GoodTests.py can be pointed toward any directory, and will load all files prefixed with test\_ (example: test\_Something.py)
 
 Output will contain colours, and lists all the failures (or passes) as they happen, and a consolidated list at the end:
+
+
+Example
+-------
 
 Example Test test\_Magic.py:
 
@@ -137,4 +141,7 @@ Results:
 	Test results (2 of 3 PASS) Took 0.006250 total seconds to run.
 
 
+Including In Project
+--------------------
 
+I recommend if you are to include GoodTests within your project, that you use the provided "distrib/runTests.py" script. It has two variables at the top which you override. This will download the latest GoodTests if not installed, and install it into the current directory (so does not need global rights). It will also run the tests against the provided source in the package instead of the global install, which is easier for development and potential upgrading. See distrib/README for more information.

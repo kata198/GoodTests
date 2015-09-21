@@ -1,0 +1,8 @@
+include ChangeLog
+include setup.py
+include README.md
+include README.rst
+include test_Magic.py
+include Goodtests.py
+include LICENSE
+recursive-include distrib *

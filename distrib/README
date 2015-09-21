@@ -1,0 +1,15 @@
+You can include GoodTests within your project easily by doing the following:
+
+
+Create a folder at the root of your distribution, "tests" or whatever. I will call it "tests" henceforth
+
+In that directory, put the runTests.py file
+
+Edit runTests.py and change "MY_PACKAGE_MODULE" to be the name of your package at the root level.
+
+Create a directory to hold all your tests within the "tests" directory (e.x. MyPackageTests)
+
+Edit runTests.py and change "MY_TEST_DIRECTORY" to be the name of this directory.
+
+runTests.py will then try to create a symlink to ../MY_PACKAGE_MODULE so that you can run the tests prior to installing, and run tests against that version instead of the globally installed version (like for development)..
+
