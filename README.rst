@@ -25,116 +25,206 @@ Some Features:
 
 GoodTests supports auto discovery of tests given a directory, by looking for files and classes that match the pattern (compatible with py.test)
 
-Each file should be in the form of test\_$$CLASSNAME$$.py (where $$CLASSNAME$$ is the name, e.g. "Magic"). The class within the file should either be prefixed or suffixed with the word "Test" (e.g: "TestMagic" or "MagicTest").
+Each file should be in the form of test_$$CLASSNAME$$.py (where $$CLASSNAME$$ is the name, e.g. "Magic"). The class within the file should either be prefixed or suffixed with the word "Test" (e.g: "TestMagic" or "MagicTest").
 
-Supports old unit-test style (teardown\_method and setup\_method called for each method, and setup\_class, teardown\_class for each class) Also supports more modern forms, setup/teardown\_[CLASSNAME] and setup/teardown\_[METHOD]
+Supports old unit-test style (teardown_method and setup_method called for each method, and setup_class, teardown_class for each class) Also supports more modern forms, setup/teardown_[CLASSNAME] and setup/teardown_[METHOD]
 
 The setup and teardown functions run REGARDLESS of whether the method itself was a success (contrary to some other unit testing frameworks).
 
 Assertions should use the "assert" keyword in python (example: assert 1 != 2)
 
-See "test\_Magic.py" for an example:
+See "test_Magic.py" for an example:
+
 
 	$ python GoodTests.py --help
+
 	Usage:  GoodTests.py (options) [filesnames or directories]
+
+
 
 	Options:
 
+
+
 		-n [number]              - Specifies number of simultanious executions (default: 1)
+
 		-m [regexp]              - Run methods matching a specific pattern
+
 		-q                       - Quiet (only print failures)
+
 		-t                       - Print extra timing information
+
 		--no-colour              - Strip out colours from output
+
 		--no-color
 
+
+
 		--help                   - Show this screen
+
+
 
 
 GoodTests can be used with -n to do multiple simultanious executions (one process per test class)
 
 -m will use a regular expression pattern to execute only methods matching the name -q will only print failures
 
-GoodTests.py can be pointed toward any directory, and will load all files prefixed with test\_ (example: test\_Something.py)
+GoodTests.py can be pointed toward any directory, and will load all files prefixed with test\_ (example: test_Something.py)
 
 Output will contain colours, and lists all the failures (or passes) as they happen, and a consolidated list at the end:
 
-Example Test test\_Magic.py:
+Example Test test_Magic.py:
+
 
 	import os
 
+
+
 	DO_PRINT = int(os.environ.get('DO_PRINT', 0))
+
+
 
 	class TestMagic(object):
 
+
+
 		def setup_TestMagic(self):
+
 			if DO_PRINT:
+
 				print("Class Constructor")
 
+
+
 		def setup_one(self):
+
 			if DO_PRINT:
+
 				print("--Setting up one")
 
+
+
 		def test_one(self):
+
 			assert "one" != "magic"
+
 			assert "magic" == "magic"
 
+
+
 		def teardown_one(self):
+
 			if DO_PRINT:
+
 				print("--Tearing Down One")
 
 
+
+
+
 		def test_WillFail(self):
+
 			assert 2 == 3, 'Expected two to equal three'
 
+
+
 		def test_popularity(self):
+
 			tim = 'abcsdfsd'
+
 			cool = 'abcsdfsd'
+
 			assert tim is cool
 
+
+
 		def teardown_WillFail(self):
+
 			if DO_PRINT:
+
 				print("--Tearing Down Will Fail")
+
+
 
 
 Results:
 
+
 	$ GoodTests.py test\_Magic.py
 
+
+
 	test_Magic.py - TestMagic.test_WillFail FAIL *****Assertion Error*****
+
 	Traceback (most recent call last):
+
 		File "./GoodTests.py", line 371, in runTestMethod
+
 		getattr(instantiatedTestClass, testFunctionName)()
+
 		File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
+
 		assert 2 == 3
+
 	AssertionError: Expected two to equal three
 
+
+
 	test_Magic.py - TestMagic.test_one PASS
+
 	test_Magic.py - TestMagic.test_popularity PASS
 
 
+
+
+
 	==================================================
+
 	Summary:
+
+
 
 	Test results (2 of 3 PASS) Took 0.000650 total seconds to run.
 
 
+
+
+
 	Failing Tests:
+
 	test_Magic.py (1 FAILED):
+
 		TestMagic (1 FAILED):
+
 			test_WillFail -
+
 			Traceback (most recent call last):
+
 				File "./GoodTests.py", line 371, in runTestMethod
+
 				getattr(instantiatedTestClass, testFunctionName)()
+
 				File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
+
 				assert 2 == 3
+
 			AssertionError: Expected two to equal three
 
 
 
+
+
+
+
 	==================================================
+
 	Summary:
 
+
+
 	Test results (2 of 3 PASS) Took 0.006250 total seconds to run.
+
+
 
 
 
