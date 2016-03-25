@@ -5,4 +5,5 @@ include README.rst
 include test_Magic.py
 include Goodtests.py
 include LICENSE
+include install.sh
 recursive-include distrib *

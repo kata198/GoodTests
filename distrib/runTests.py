@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#  Copyright (c) 2015 Tim Savannah under following terms:
+#  Copyright (c) 2015, 2016 Tim Savannah under following terms:
 #   You may modify and redistribe this script with your project
 #
 # It will download the latest GoodTests.py and use it to execute the tests.
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         try:
-            os.symlink(MY_PACKAGE_MODULE, '../'  + MY_PACKAGE_MODULE)
+            os.symlink('../'  + MY_PACKAGE_MODULE, MY_PACKAGE_MODULE)
         except Exception as e:
             sys.stderr.write('Unable to create a symlink to ../%s: %s\n' %(MY_PACKAGE_MODULE, str(e)))
             sys.exit(1)
