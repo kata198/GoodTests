@@ -3,7 +3,7 @@ include setup.py
 include README.md
 include README.rst
 include test_Magic.py
-include Goodtests.py
+include GoodTests.py
 include LICENSE
 include install.sh
 recursive-include distrib *

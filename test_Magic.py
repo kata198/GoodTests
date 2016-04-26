@@ -1,4 +1,8 @@
+#!/usr/bin/env GoodTests.py
+
 import os
+import subprocess
+import sys
 
 DO_PRINT = int(os.environ.get('DO_PRINT', 0))
 
@@ -32,3 +36,7 @@ class TestMagic(object):
     def teardown_WillFail(self):
         if DO_PRINT:
             print("--Tearing Down Will Fail")
+
+
+if __name__ == '__main__':
+    sys.exit(subprocess.Popen(['GoodTests.py', sys.argv[0]], shell=False).wait())
