@@ -1,3 +1,10 @@
+* 1.2.0 Apr 25 2016
+- Disable colour by default if platform is windows
+- Default number of processes to the number of CPUs on the system
+- Allow "-n" to be used in more forms (like "-n 1" or "-n1")
+- Update "distrib/runTests.py" script to tell if it failed, or if there were missing
+dependencies (and suggest how to resolve)
+
 * 1.1.4 Mar 25 2016
 - Fix order of arguments in os.symlink in distrib/runTests
 

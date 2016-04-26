@@ -126,8 +126,11 @@ if __name__ == '__main__':
 
     try:
         __import__(MY_PACKAGE_MODULE)
-    except ImportError:
-        sys.stderr.write('Could not import %s. Either install it or otherwise add to PYTHONPATH\n' %(MY_PACKAGE_MODULE,))
+    except ImportError as e:
+        if e.name != MY_PACKAGE_MODULE:
+            sys.stderr.write('Error while importing %s: %s\n  Likely this is another dependency that needs to be installed\nPerhaps run "pip install %s" or install the providing package.\n\n' %(e.name, str(e), e.name))
+            sys.exit(1)
+        sys.stderr.write('Installation failed: Could not import %s. Either install it or otherwise add to PYTHONPATH\n%s\n' %(MY_PACKAGE_MODULE, str(e)))
         sys.exit(1)
 
     sys.stdout.write('Starting test..\n')

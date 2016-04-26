@@ -5,3 +5,6 @@
 *.swo
 *.pyc
 *.pyo
+*.egg-info/
+build/
+dist/

@@ -11,7 +11,8 @@ import time
 import traceback
 import types
 
-DEFAULT_MAX_RUNNERS = 1
+DEFAULT_MAX_RUNNERS = multiprocessing.cpu_count()
+
 try:
     xrange
 except NameError:
@@ -20,12 +21,12 @@ except NameError:
 COLOUR_RE = re.compile('\033\[[\d]+[m]')
 
 VERSION_MAJOR = 1
-VERSION_MINOR = 1
-VERSION_PATCH = 4
+VERSION_MINOR = 2
+VERSION_PATCH = 0
 
-__version__ = "1.1.4"
+__version__ = "1.2.0"
 
-__version_tuple__ = (1, 1, 4)
+__version_tuple__ = (1, 2, 0)
 
 VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
@@ -388,7 +389,6 @@ class GoodTests(object):
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) +  (tracebackInfo,)
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Assertion Error*****\n\033[91m%s\033[0m" % theTuple)
             ret = ('FAIL', tracebackInfo)
-
         except Exception as e:
             # Exception while running test
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -427,10 +427,17 @@ def printUsage():
 
          Options:
 
-           -n [number]              - Specifies number of simultaneous executions (default: %d)
+           -n [number]              - Specifies number of simultaneous executions 
+                                        Default = # of processors (%d).
+                                       You must use "-n 1" if using pdb
+                                      
+
            -m [regexp]              - Run methods matching a specific pattern
            -q                       - Quiet (only print failures)
            -t                       - Print extra timing information
+
+           --pdb                    - When an assertion fails, begin a pdb session at
+                                       that point. Requires n=1
 
            --no-colour              - Strip out colours from output
            --no-color
@@ -451,20 +458,24 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, handle_sigTerm)
 
     # Parse args
-    maxRunners = 1
+    maxRunners = DEFAULT_MAX_RUNNERS
     printFailuresOnly = False
     specificTest = None
     extraTimes = False
     useColour = True
 
 
+    if sys.platform == 'win32':
+        # Don't try colour if running on dos
+        useColour = False
+    
     numArgs = len(sys.argv)
     i = 1
     
     argPaths = []
 
-    helpArgs = set(['--help', '-h', '-?'])
-    versionArgs = set(['--version', '-v'])
+    helpArgs = ('--help', '-h', '-?')
+    versionArgs = ('--version', '-v')
 
     while i < numArgs:
         arg = sys.argv[i]
@@ -475,12 +486,16 @@ if __name__ == "__main__":
         elif arg in versionArgs:
             sys.stdout.write('GoodTests.py version %s by Timothy Savannah (c) 2011 LGPL version 2.1\n' %(VERSION,))
             sys.exit(0)
-        elif arg == '-n':
-            if i+1 == numArgs or sys.argv[i+1].isdigit() is False:
-                sys.stderr.write('-n requires a numeric argument\n')
-                sys.exit(1)
-            maxRunners = int(sys.argv[i+1])
-            i += 2
+        elif arg.startswith('-n'):
+            if arg[2:].strip().isdigit():
+                maxRunners = int(arg[2:].strip())
+                i += 1
+            else:
+                if i+1 == numArgs or sys.argv[i+1].isdigit() is False:
+                    sys.stderr.write('-n requires a numeric argument\n')
+                    sys.exit(1)
+                maxRunners = int(sys.argv[i+1])
+                i += 2
         elif arg == '-q':
             printFailuresOnly = True
             i += 1
