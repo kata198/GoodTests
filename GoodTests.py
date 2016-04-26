@@ -258,12 +258,12 @@ class GoodTests(object):
         testsRunCount = 0
 
         for testClassName in testClassNames:
-            testClass = getattr(module, testClassName)
+            TestClass = getattr(module, testClassName)
 
             oldStyle = bool(testClassName.endswith('Test'))
 
             try:
-                instantiatedTestClass = getattr(module, testClassName)()
+                instantiatedTestClass = TestClass()
             except:
                 # This is an import beginning with 'Test'
                 continue
