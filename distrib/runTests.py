@@ -26,7 +26,6 @@ MY_PACKAGE_MODULE = 'YourPackageModule'
 ALLOW_SITE_INSTALL = True
 
 # This is the test directory that should contain all your tests. This should be a directory in your "tests" folder
-# TODO: modify this to support a relative path anywhere
 MY_TEST_DIRECTORY = 'YourTestDir'
 
 def findGoodTests():
@@ -182,6 +181,13 @@ if __name__ == '__main__':
             sys.exit(1)
         sys.stderr.write('Could not import %s. Either install it or otherwise add to PYTHONPATH\n%s\n' %(MY_PACKAGE_MODULE, str(e)))
         sys.exit(1)
+
+    if not os.path.isdir(MY_TEST_DIRECTORY):
+        if not os.path.exists(MY_TEST_DIRECTORY):
+            sys.stderr.write('Cannot find test directory: %s\n' %(MY_TEST_DIRECTORY,))
+        else:
+            sys.stderr.write('Provided test directory, "%s" is not a directory.\n' %(MY_TEST_DIRECTORY,))
+        sys.exit(3)
 
     sys.stdout.write('Starting test..\n')
     sys.stdout.flush()
