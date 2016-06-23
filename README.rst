@@ -231,4 +231,6 @@ Results:
 
 **Including In Project**
 
-I recommend if you are to include GoodTests within your project, that you use the provided "distrib/runTests.py" script. It has two variables at the top which you override. This will download the latest GoodTests if not installed, and install it into the current directory (so does not need global rights). It will also run the tests against the provided source in the package instead of the global install, which is easier for development and potential upgrading. See distrib/README for more information.
+I recommend bundling the provided "distrib/runTests.py" with your projects to support GoodTests.
+
+runTests.py will download the latest GoodTests.py into the local directory if it is not installed, and will ensure the local copy of source is used when running tests, which saves the step of running "setup.py install" each change to run tests.

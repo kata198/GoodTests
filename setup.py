@@ -12,7 +12,7 @@ except:
 if __name__ == '__main__':
 
     setup(name='GoodTests',
-            version='1.2.0',
+            version='1.2.1',
             scripts=['GoodTests.py'],
             author='Tim Savannah',
             author_email='kata198@gmail.com',

@@ -1,3 +1,13 @@
+* 1.2.1 Jun 22 2016
+- Update distrib/runTests.py to support relative test directories
+- Update distrib/runTests.py to support providing a relative or absolute path
+to a file or directory as MY_PACKAGE_MODULE and runTests.py will set the
+PYTHONPATH such that the tests will use that directory.
+- Update distrib/runTests.py adding variable ALLOW_SITE_INSTALL, when False
+(default), runTests.py will refuse to run if it can only find a global install
+of the given module, i.e. when False it must find a local install. This can
+help during development, so you aren't testing the wrong code!
+
 * 1.2.0 Apr 25 2016
 - Disable colour by default if platform is windows
 - Default number of processes to the number of CPUs on the system
