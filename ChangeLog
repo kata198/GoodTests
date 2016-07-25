@@ -1,3 +1,6 @@
+* 1.2.2 Jul 25 2016
+- Update distrib/runTests.py to support passing arguments to GoodTests
+
 * 1.2.1 Jun 22 2016
 - Update distrib/runTests.py to support relative test directories
 - Update distrib/runTests.py to support providing a relative or absolute path

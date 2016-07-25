@@ -192,5 +192,5 @@ if __name__ == '__main__':
     sys.stdout.write('Starting test..\n')
     sys.stdout.flush()
     sys.stderr.flush()
-    pipe = subprocess.Popen([goodTestsInfo['path'], MY_TEST_DIRECTORY], env=os.environ, shell=False)
+    pipe = subprocess.Popen([goodTestsInfo['path']] + sys.argv[1:] + [MY_TEST_DIRECTORY], env=os.environ, shell=False)
     pipe.wait()
