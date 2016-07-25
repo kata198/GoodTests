@@ -18,6 +18,7 @@ if __name__ == '__main__':
             author_email='kata198@gmail.com',
             maintainer='Tim Savannah',
             maintainer_email='kata198@gmail.com',
+            url="https://github.com/kata198/GoodTests",
             description=summary,
             long_description=long_description,
             license='LGPLv2',
