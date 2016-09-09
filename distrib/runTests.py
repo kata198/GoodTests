@@ -146,10 +146,14 @@ if __name__ == '__main__':
         except ImportError:
             # COMPAT WITH PREVIOUS runTests.py: Try plain module in parent directory
             foundIt = False
+            oldSysPath = sys.path[:]
+            sys.path = [os.path.realpath(os.getcwd() + os.sep + '..' + os.sep)]
             try:
-                imp.find_module('..' + os.sep + MY_PACKAGE_MODULE)
+                imp.find_module(MY_PACKAGE_MODULE)
                 foundIt = True
-            except ImportError:
+                sys.path = oldSysPath
+            except ImportError as e:
+                sys.path = oldSysPath
                 if not ALLOW_SITE_INSTALL:
                     sys.stderr.write('Cannot find "%s" locally.\n' %(MY_PACKAGE_MODULE,))
                     sys.exit(2)
@@ -161,9 +165,9 @@ if __name__ == '__main__':
                         sys.exit(2)
 
             if foundIt is True:
-                newPath = os.getcwd() + os.sep + '..' + os.sep
+                newPath = os.path.realpath(os.getcwd() + os.sep + '..' + os.sep)
         if inCurrentDir is True:
-            newPath = os.getcwd() + os.sep + '..' + os.sep
+            newPath = os.path.realpath(os.getcwd() + os.sep + '..' + os.sep)
     
     if newPath:
         newPythonPath = [newPath] + [x for x in os.environ.get('PYTHONPATH', '').split(':') if x]
