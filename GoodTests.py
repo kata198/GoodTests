@@ -24,9 +24,9 @@ VERSION_MAJOR = 1
 VERSION_MINOR = 2
 VERSION_PATCH = 1
 
-__version__ = "1.2.1"
+__version__ = "1.2.3"
 
-__version_tuple__ = (1, 2, 1)
+__version_tuple__ = (1, 2, 3)
 
 VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
