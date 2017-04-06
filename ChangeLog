@@ -1,4 +1,4 @@
-2.0.0 - Apr 6 2017
+2.0.1 - Apr 6 2017
 * Better error reporting:
 	- Report on errors in class setup
 	- Report on errors in class teardown
