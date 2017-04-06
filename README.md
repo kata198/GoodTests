@@ -106,8 +106,6 @@ Results:
 
 	test_Magic.py - TestMagic.test_WillFail FAIL *****Assertion Error*****
 	Traceback (most recent call last):
-		File "./GoodTests.py", line 371, in runTestMethod
-		getattr(instantiatedTestClass, testFunctionName)()
 		File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
 		assert 2 == 3
 	AssertionError: Expected two to equal three
@@ -127,8 +125,6 @@ Results:
 		TestMagic (1 FAILED):
 			test_WillFail -
 			Traceback (most recent call last):
-				File "./GoodTests.py", line 371, in runTestMethod
-				getattr(instantiatedTestClass, testFunctionName)()
 				File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
 				assert 2 == 3
 			AssertionError: Expected two to equal three

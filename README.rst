@@ -160,10 +160,6 @@ Results:
 
 	Traceback (most recent call last):
 
-		File "./GoodTests.py", line 371, in runTestMethod
-
-		getattr(instantiatedTestClass, testFunctionName)()
-
 		File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
 
 		assert 2 == 3
@@ -201,10 +197,6 @@ Results:
 			test_WillFail -
 
 			Traceback (most recent call last):
-
-				File "./GoodTests.py", line 371, in runTestMethod
-
-				getattr(instantiatedTestClass, testFunctionName)()
 
 				File "/home/media/work/github/GoodTests/test_Magic.py", line 25, in test_WillFail
 
