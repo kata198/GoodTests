@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from setuptools import setup
 
 
@@ -12,7 +14,7 @@ except:
 if __name__ == '__main__':
 
     setup(name='GoodTests',
-            version='1.2.3',
+            version='2.0.0',
             scripts=['GoodTests.py'],
             author='Tim Savannah',
             author_email='kata198@gmail.com',
@@ -34,6 +36,7 @@ if __name__ == '__main__':
                           'Programming Language :: Python :: 3',
                           'Programming Language :: Python :: 3.4',
                           'Programming Language :: Python :: 3.5',
+                          'Programming Language :: Python :: 3.6',
                           'Topic :: Software Development :: Testing',
             ]
     )

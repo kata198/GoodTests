@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#Copyright 2011, 2015, 2016 (c) Timothy Savannah under LGPLv2, All Rights Reserved. See LICENSE for more information
+#Copyright 2011, 2015, 2016, 2017 (c) Timothy Savannah under LGPLv2, All Rights Reserved. See LICENSE for more information
 
 import glob
 import multiprocessing
@@ -20,13 +20,13 @@ except NameError:
 
 COLOUR_RE = re.compile('\033\[[\d]+[m]')
 
-VERSION_MAJOR = 1
-VERSION_MINOR = 2
-VERSION_PATCH = 1
+VERSION_MAJOR = 2
+VERSION_MINOR = 0
+VERSION_PATCH = 0
 
-__version__ = "1.2.3"
+__version__ = "2.0.0"
 
-__version_tuple__ = (1, 2, 3)
+__version_tuple__ = (2, 0, 0)
 
 VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 

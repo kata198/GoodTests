@@ -1,3 +1,12 @@
+2.0.0 - Apr 6 2017
+* Better error reporting:
+	- Report on errors in class setup
+	- Report on errors in class teardown
+	- Note that a failure in method setup/teardown was in that method
+
+* Exclude "GoodTests.py" code from the reported tracebacks
+* Ensure we replace only the START test_ for setup/teardown names, so methods named strangely like test_Whatever_test will work
+
 * 1.2.3 Sep 9 2016
 - Update distrib/runTests.py to support older versions of python (< 2.7.9 or 3.1,3.2, some 3.3 series) which don't support relative path in imp.find_module
 - Update distrib/runTests.py to be importable and functionality called from an external application (like a GUI), and even adjust the globals by passing their names to the new main() function.
