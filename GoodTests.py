@@ -281,48 +281,85 @@ class GoodTests(object):
                     testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if memberName.startswith('test') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
 
             # General setup_class
-            timeStart = time.time()
-            if hasattr(instantiatedTestClass, 'setup_class'):
-                getattr(instantiatedTestClass, 'setup_class')()
-            timeEnd = time.time()
-            if self.extraTimes is True:
-                self.output("setup_class took " + str(timeEnd - timeStart) + " seconds")
-
-            # Old school python unittest general setup for class
-            if hasattr(instantiatedTestClass, 'setUp'):
-                getattr(instantiatedTestClass, 'setUp')()
-
-            # Module-specific class-level setup
-            if hasattr(instantiatedTestClass, 'setup_' + testClassName):
-                getattr(instantiatedTestClass, 'setup_' + testClassName)()
-
-
-            # Run test methods (and method-specific setup/teardown)
-            for testFunctionName in testFunctionNames:
+            setupSuccess = True
+            try:
                 timeStart = time.time()
-                (status, message) = self.runTestMethod(instantiatedTestClass, testFile, testFunctionName)
+
+                functionName = 'setup_class'
+                if hasattr(instantiatedTestClass, 'setup_class'):
+                    getattr(instantiatedTestClass, 'setup_class')()
                 timeEnd = time.time()
                 if self.extraTimes is True:
-                    self.output(testFunctionName + " took " + str(timeEnd - timeStart) + " seconds")
-                if status == 'FAIL':
-                    if testClassName not in failedResults:
-                        failedResults[testClassName] = []
-                    failedResults[testClassName].append((testFunctionName, message))
-                else:
-                    passCount += 1
-                testsRunCount += 1
+                    self.output("setup_class took " + str(timeEnd - timeStart) + " seconds")
 
-            # Module-specific tear-down
-            if hasattr(instantiatedTestClass, 'teardown_' + testClassName):
-                getattr(instantiatedTestClass, 'teardown_' + testClassName)()
+                # Old school python unittest general setup for class
+                functionName = 'setUp'
+                if hasattr(instantiatedTestClass, 'setUp'):
+                    getattr(instantiatedTestClass, 'setUp')()
 
-            # Old school python unittest general teardown for class
-            if hasattr(instantiatedTestClass, 'tearDown'):
-                getattr(instantiatedTestClass, 'tearDown')()
+                # Module-specific class-level setup
+                functionName = 'setup_' + testClassName
+                if hasattr(instantiatedTestClass, functionName):
+                    getattr(instantiatedTestClass, functionName)()
+            except Exception as e:
+                # Exception while running test
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
+                theTuple = self._getTestLineStart(instantiatedTestClass, testFile, functionName) + (tracebackInfo,)
+                self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Class Setup*****\n\033[91m%s\033[0m" % theTuple)
 
-            # General teardown_class
-            if hasattr(instantiatedTestClass, 'teardown_class'):
-                getattr(instantiatedTestClass, 'teardown_class')()
+                if testClassName not in failedResults:
+                    failedResults[testClassName] = []
+                failedResults[testClassName].append((functionName, tracebackInfo))
+
+
+                setupSuccess = False
+
+
+            if setupSuccess is True:
+                # Run test methods (and method-specific setup/teardown)
+                for testFunctionName in testFunctionNames:
+                    timeStart = time.time()
+                    (status, message) = self.runTestMethod(instantiatedTestClass, testFile, testFunctionName)
+                    timeEnd = time.time()
+                    if self.extraTimes is True:
+                        self.output(testFunctionName + " took " + str(timeEnd - timeStart) + " seconds")
+                    if status == 'FAIL':
+                        if testClassName not in failedResults:
+                            failedResults[testClassName] = []
+                        failedResults[testClassName].append((testFunctionName, message))
+                    else:
+                        passCount += 1
+                    testsRunCount += 1
+            else:
+                # Mark all tests failed, we could not complete class setup
+                testsRunCount += len(testFunctionNames)
+
+            try:
+                # Module-specific tear-down
+                functionName = 'teardown_' + testClassName
+                if hasattr(instantiatedTestClass, functionName):
+                    getattr(instantiatedTestClass, functionName)()
+
+                # Old school python unittest general teardown for class
+                functionName = 'tearDown'
+                if hasattr(instantiatedTestClass, 'tearDown'):
+                    getattr(instantiatedTestClass, 'tearDown')()
+
+                # General teardown_class
+                functionName = 'teardown_class'
+                if hasattr(instantiatedTestClass, 'teardown_class'):
+                    getattr(instantiatedTestClass, 'teardown_class')()
+            except Exception as e:
+                # Exception while running test
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
+                theTuple = self._getTestLineStart(instantiatedTestClass, testFile, functionName) + (tracebackInfo,)
+                self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Class Teardown*****\n\033[91m%s\033[0m" % theTuple)
+
+                if testClassName not in failedResults:
+                    failedResults[testClassName] = []
+                failedResults[testClassName].append((functionName, tracebackInfo))
 
         ret = (failedResults, passCount, testsRunCount)
         self._childObjToParent((testFile, ret))
@@ -365,15 +402,16 @@ class GoodTests(object):
             if hasattr(instantiatedTestClass, 'setup_method'):
                 getattr(instantiatedTestClass, 'setup_method')(getattr(instantiatedTestClass, testFunctionName))
 
+            testSetupFuncName = re.sub('^test_', 'setup_', testFunctionName)
             # Specific method setup
-            if hasattr(instantiatedTestClass, testFunctionName.replace('test_', 'setup_')):
-                getattr(instantiatedTestClass, testFunctionName.replace('test_', 'setup_'))()
+            if hasattr(instantiatedTestClass, testSetupFuncName):
+                getattr(instantiatedTestClass, testSetupFuncName)()
         except Exception as e:
             # Exception while running test
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
-            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Setup*****\n\033[91m%s\033[0m" % theTuple)
+            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Method Setup*****\n\033[91m%s\033[0m" % theTuple)
             return ('FAIL', tracebackInfo)
 
         try:
@@ -385,14 +423,14 @@ class GoodTests(object):
         except AssertionError as e:
             # Test failure
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) +  (tracebackInfo,)
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Assertion Error*****\n\033[91m%s\033[0m" % theTuple)
             ret = ('FAIL', tracebackInfo)
         except Exception as e:
             # Exception while running test
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Execution*****\n\033[91m%s\033[0m" % theTuple)
             ret = ('FAIL', tracebackInfo)
@@ -404,8 +442,10 @@ class GoodTests(object):
 
         try:
             # Specific method teardown
-            if hasattr(instantiatedTestClass, testFunctionName.replace('test_', 'teardown_')):
-                getattr(instantiatedTestClass, testFunctionName.replace('test_', 'teardown_'))()
+
+            testTeardownFuncName = re.sub('^test_', 'teardown_', testFunctionName)
+            if hasattr(instantiatedTestClass, testTeardownFuncName):
+                getattr(instantiatedTestClass, testTeardownFuncName)()
 
             # General method teardown
             if hasattr(instantiatedTestClass, 'teardown_method'):
@@ -413,9 +453,9 @@ class GoodTests(object):
         except Exception as e:
             # Exception while running test
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
-            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Teardown*****\n\033[91m%s\033[0m" % theTuple)
+            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Method Teardown*****\n\033[91m%s\033[0m" % theTuple)
             return ('FAIL', tracebackInfo)
 
         return ret
