@@ -12,6 +12,8 @@ import time
 import traceback
 import types
 
+from collections import deque
+
 DEFAULT_MAX_RUNNERS = multiprocessing.cpu_count()
 
 try:
@@ -36,7 +38,7 @@ class GoodTests(object):
        Runs tests well.
     '''
 
-    def __init__(self, maxRunners=DEFAULT_MAX_RUNNERS, printFailuresOnly=False, extraTimes=False, useColour=True):
+    def __init__(self, maxRunners=DEFAULT_MAX_RUNNERS, printFailuresOnly=False, extraTimes=False, useColour=True, specificTestPattern=None):
         '''
             maxRunners is how many tests to execute simultaniously.
         '''
@@ -53,11 +55,18 @@ class GoodTests(object):
             sys.stdout = devnull
 
         # List of testNames left to run
-        self.testQueue = []
+        self.testQueue = deque()
         self.extraTimes = extraTimes
         self.noFork = (maxRunners == 1)
 
         self.useColour = useColour
+
+        self.specificTestPattern = specificTestPattern
+        if specificTestPattern is not None:
+            try:
+                re.compile(specificTestPattern)
+            except:
+                raise ValueError('Cannot compile pattern: ' + specificTestPattern)
 
 
     def output(self, text):
@@ -155,14 +164,14 @@ class GoodTests(object):
             return self._tasksLeft()
 
         if self.noFork:
-            (nextTest, specificTest) = self.testQueue.pop(0)
-            self.runTest(nextTest, specificTest)
+            nextTest = self.testQueue.popleft()
+            self.runTest(nextTest, self.specificTestPattern)
         else:
             for i in xrange(len(self.runningProcesses)):
                 if self.runningProcesses[i][0] is None:
                     # Nothing running in this slot, queue something
-                    (nextTest, specificTest) = self.testQueue.pop(0)
-                    childProcess = multiprocessing.Process(target=self.runTest, args=(nextTest, specificTest))
+                    nextTest = self.testQueue.popleft()
+                    childProcess = multiprocessing.Process(target=self.runTest, args=(nextTest, self.specificTestPattern))
                     childProcess.start()
                     self.runningProcesses[i][0] = childProcess
                     self.runningProcesses[i][1] = nextTest
@@ -205,14 +214,13 @@ class GoodTests(object):
             pass
 
 
-    def getTestsForDirectory(self, directory, specificTest=None):
+    def getTestsForDirectory(self, directory):
         '''
             getTestsForDirectory - Gather all tests in a given directory.
 
             A test begins with test_ and ends with .py
 
             @param directory <str> - A path to a directory. This should be cleaned up first ( #_cleanDirectoryNames )
-            @param specificTest <None/str> - A specific test filter to append with matched tests, for when only certain tests are ran
 
             @return list ( tuple<str, str/None>  ) - A list of all test files found, coupled potentially with a specific test
         '''
@@ -221,10 +229,9 @@ class GoodTests(object):
         testFiles = glob.glob(directory + os.sep + 'test_*.py')
         testFiles.sort()
 
+        return testFiles
 
-        return [(testFile, specificTest) for testFile in testFiles]
-
-    def runTests(self, directories, files, specificTest=None):
+    def runTests(self, directories, files):
         '''
            Run all tests in directories
         '''
@@ -232,10 +239,9 @@ class GoodTests(object):
 
         for directory in directories:
             self.removePycacheDir(directory)
-            self.testQueue += self.getTestsForDirectory(directory, specificTest)
+            self.testQueue += self.getTestsForDirectory(directory)
 
-        for file in files:
-            self.testQueue.append( (file, specificTest) )
+        self.testQueue += files
 
         testResults = {} # Keyed by testFilename, values are return of runTest
 
@@ -277,7 +283,7 @@ class GoodTests(object):
         self.output('Test results (%d of %d PASS) Took %f total seconds to run.\n\n' %(sum([int(x[1]) for x in testResults.values()]), sum([int(x[2]) for x in testResults.values()]), totalTimeEnd - totalTimeStart ) )
 
 
-    def runTest(self, testFile, specificTest=None):
+    def runTest(self, testFile, specificTestPattern=None):
         '''
            Run a specific test file (where testFile is an importable python name [i.e. test_Something.py]).
            All classes beginning with 'Test' are going to be tested.
@@ -329,12 +335,12 @@ class GoodTests(object):
                 # This is an import beginning with 'Test'
                 continue
 
-            if specificTest:
-                testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if re.match(specificTest, memberName) and memberName.startswith('test') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
+            if specificTestPattern:
+                testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if re.match(specificTestPattern, memberName) and memberName.startswith('test') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
                 if not testFunctionNames:
                     # Try .* on either side
-                    specificTest = '.*' + specificTest + '.*'
-                    testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if re.match(specificTest, memberName) and memberName.startswith('test') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
+                    specificTestPattern = '.*' + specificTestPattern + '.*'
+                    testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if re.match(specificTestPattern, memberName) and memberName.startswith('test') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
             else:
                 if not oldStyle:
                     testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if memberName.startswith('test_') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
@@ -567,7 +573,7 @@ if __name__ == "__main__":
     # Parse args
     maxRunners = DEFAULT_MAX_RUNNERS
     printFailuresOnly = False
-    specificTest = None
+    specificTestPattern = None
     extraTimes = False
     useColour = True
 
@@ -610,7 +616,7 @@ if __name__ == "__main__":
             if i+1 == numArgs:
                 sys.stderr.write('-m needs a value\n')
                 sys.exit(1)
-            specificTest = sys.argv[i+1]
+            specificTestPattern = sys.argv[i+1]
             i += 2
         elif arg == '-t':
             extraTimes = True
@@ -626,7 +632,11 @@ if __name__ == "__main__":
 
     # init tester
     global tester
-    tester = GoodTests(maxRunners=maxRunners, printFailuresOnly=printFailuresOnly, extraTimes=extraTimes, useColour=useColour)
+    try:
+        tester = GoodTests(maxRunners=maxRunners, printFailuresOnly=printFailuresOnly, extraTimes=extraTimes, useColour=useColour, specificTestPattern=specificTestPattern)
+    except ValueError as e:
+        sys.stderr.write(str(e) + '\n')
+        sys.exit(1)
 
     # Find directory to run
     if len(argPaths) == 0:
@@ -648,6 +658,6 @@ if __name__ == "__main__":
 
     # Run directory
     try:
-        tester.runTests(directories, files, specificTest=specificTest)
+        tester.runTests(directories, files)
     except KeyboardInterrupt:
         handle_sigTerm(None, None)
