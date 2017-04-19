@@ -248,8 +248,22 @@ def main(thisDir=None, additionalArgs=[], MY_PACKAGE_MODULE=None, ALLOW_SITE_INS
     sys.stdout.write('Starting test..\n')
     sys.stdout.flush()
     sys.stderr.flush()
+
+
+    didTerminate = False
+
     pipe = subprocess.Popen([goodTestsInfo['path']] + additionalArgs + [MY_TEST_DIRECTORY], env=os.environ, shell=False)
-    pipe.wait()
+    while True:
+        try:
+            pipe.wait()
+            break
+        except KeyboardInterrupt:
+            if not didTerminate:
+                pipe.terminate()
+                didTerminate = True
+            else:
+                pipe.kill()
+                break
 
     return 0
 
