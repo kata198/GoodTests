@@ -1,3 +1,36 @@
+2.1.0 - Apr 19 2017
+
+- Change to using deque for internal structures that only popleft
+
+- Use "realpath" to avoid some strange issues which can occur with relative
+paths
+
+- Use OS-independent operations, which should make GoodTests.py windows
+compatible again
+
+- Some cleanups, docstrings, etc
+
+- Simplifications on using specific test pattern (-m)
+
+- Remove __pycache__ directory before running test (can cause issues when
+using multiple branches)
+
+- Allow using -m like -m$PATTERN in addition to -m $PATTERN
+
+- Alert right away if specific test pattern (-m) can't be compiled as a
+regular expression
+
+- Handle terminates better, and OS-independent
+
+- Print a message when GoodTests is terminating
+
+- distrib/runTests.py - Update to better handle pressing control+c, first will
+so a soft terminate, second will do a hard kill on GoodTests.py
+
+- Move GoodTests.py main into a function: main(args) to make it more easily
+called from a wrapper script, if required.
+
+
 2.0.1 - Apr 6 2017
 * Better error reporting:
 	- Report on errors in class setup
