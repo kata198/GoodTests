@@ -14,7 +14,7 @@ except:
 if __name__ == '__main__':
 
     setup(name='GoodTests',
-            version='2.0.1',
+            version='2.1.0',
             scripts=['GoodTests.py'],
             author='Tim Savannah',
             author_email='kata198@gmail.com',

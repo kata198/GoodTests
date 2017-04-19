@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-#Copyright 2011, 2015, 2016, 2017 (c) Timothy Savannah under LGPLv2, All Rights Reserved. See LICENSE for more information
+#Copyright 2011, 2015, 2016, 2017 (c) Timothy Savannah under LGPLv2.1, All Rights Reserved.
+#  See LICENSE for more information
+
+# vim: set ts=4 sw=4 st=4 expandtab
 
 import glob
 import multiprocessing
@@ -24,12 +27,12 @@ except NameError:
 COLOUR_RE = re.compile('\033\[[\d]+[m]')
 
 VERSION_MAJOR = 2
-VERSION_MINOR = 0
-VERSION_PATCH = 1
+VERSION_MINOR = 1
+VERSION_PATCH = 0
 
-__version__ = "2.0.1"
+__version__ = "2.1.0"
 
-__version_tuple__ = (2, 0, 1)
+__version_tuple__ = (2, 1, 0)
 
 VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
@@ -597,7 +600,7 @@ def main(args):
             printUsage()
             sys.exit(0)
         elif arg in versionArgs:
-            sys.stdout.write('GoodTests.py version %s by Timothy Savannah (c) 2011 LGPL version 2.1\n' %(VERSION,))
+            sys.stdout.write('GoodTests.py version %s by Timothy Savannah (c) 2011 - 2017 LGPL version 2.1\n' %(VERSION,))
             sys.exit(0)
         elif arg.startswith('-n'):
             if arg[2:].strip().isdigit():
@@ -672,3 +675,5 @@ def main(args):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
+# vim: set ts=4 sw=4 st=4 expandtab

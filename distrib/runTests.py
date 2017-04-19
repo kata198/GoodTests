@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#  Copyright (c) 2015 Tim Savannah under following terms:
+#  Copyright (c) 2015, 2016, 2017 Tim Savannah under following terms:
 #   You may modify and redistribe this script with your project
 #
 # It will download the latest GoodTests.py and use it to execute the tests.
@@ -33,8 +33,8 @@ ALLOW_SITE_INSTALL = False
 # This is the test directory that should contain all your tests. This should be a directory in your "tests" folder
 MY_TEST_DIRECTORY = 'YourTestDir'
 
-__version__ = '1.2.3'
-__version_tuple__ = (1, 2, 3)
+__version__ = '2.1.0'
+__version_tuple__ = (2, 1, 0)
 
 def findGoodTests():
     '''
