@@ -49,7 +49,7 @@ class GoodTests(object):
         # If only to show failures
         self.printFailuresOnly = printFailuresOnly
         if printFailuresOnly is True:
-            devnull = open('/dev/null', 'w')
+            devnull = open(os.devnull, 'w')
             sys.stdout = devnull
 
         # List of testNames left to run
@@ -273,11 +273,11 @@ class GoodTests(object):
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         oldDir = os.getcwd()
-        if '/' in testFile:
+        if os.sep in testFile:
             (testFileDir, testFile) = os.path.split(testFile)
             os.chdir(testFileDir)
 
-        moduleName = testFile.replace('.py', '')
+        moduleName = re.sub('.py$', '', testFile)
         try:
             timeStart = time.time()
             module = __import__(moduleName)
