@@ -61,13 +61,31 @@ class GoodTests(object):
 
 
     def output(self, text):
+        '''
+            output - Called to output text to stderr, optionally stripping colour if disabled
+
+            @param text <str> - Text to send out
+        '''
         if self.useColour is False:
             text = COLOUR_RE.sub('', text)
         sys.stderr.write(text + '\n')
 
     def terminate(self):
+        '''
+            terminate - Kill all running processes
+        '''
         for (process, testName) in self.runningProcesses:
-            os.kill(process.pid, 9)
+            try:
+                process.terminate()
+            except:
+                pass
+
+        time.sleep(.2)
+        for (process, testName) in self.runningProcesses:
+            try:
+                os.kill(process.pid, 9)
+            except:
+                pass
         time.sleep(.5)
 
     def _childObjToParent(self, obj):
@@ -533,10 +551,19 @@ def printUsage():
 
 if __name__ == "__main__":
 
+    isTerminating = False
+
     def handle_sigTerm(a, b):
+        global isTerminating
+        if isTerminating:
+            return
+        isTerminating = True
+
+        sys.stderr.write ( "\nTerminating GoodTests.py...\n" )
         global tester
         tester.terminate()
         sys.exit(1)
+
     signal.signal(signal.SIGTERM, handle_sigTerm)
     signal.signal(signal.SIGINT, handle_sigTerm)
 
@@ -623,4 +650,7 @@ if __name__ == "__main__":
                 files.append(filename)
 
     # Run directory
-    tester.runTests(directories, files, specificTest=specificTest)
+    try:
+        tester.runTests(directories, files, specificTest=specificTest)
+    except KeyboardInterrupt:
+        handle_sigTerm(None, None)
