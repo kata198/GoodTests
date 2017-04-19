@@ -552,8 +552,10 @@ def printUsage():
 """ %(DEFAULT_MAX_RUNNERS,))
 
 
-if __name__ == "__main__":
 
+def main(args):
+
+    global isTerminating
     isTerminating = False
 
     def handle_sigTerm(a, b):
@@ -567,8 +569,6 @@ if __name__ == "__main__":
         tester.terminate()
         sys.exit(1)
 
-    signal.signal(signal.SIGTERM, handle_sigTerm)
-    signal.signal(signal.SIGINT, handle_sigTerm)
 
     # Parse args
     maxRunners = DEFAULT_MAX_RUNNERS
@@ -582,8 +582,8 @@ if __name__ == "__main__":
         # Don't try colour if running on dos
         useColour = False
     
-    numArgs = len(sys.argv)
-    i = 1
+    numArgs = len(args)
+    i = 0
     
     argPaths = []
 
@@ -591,7 +591,7 @@ if __name__ == "__main__":
     versionArgs = ('--version', '-v')
 
     while i < numArgs:
-        arg = sys.argv[i]
+        arg = args[i]
 
         if arg in helpArgs:
             printUsage()
@@ -604,10 +604,10 @@ if __name__ == "__main__":
                 maxRunners = int(arg[2:].strip())
                 i += 1
             else:
-                if i+1 == numArgs or sys.argv[i+1].isdigit() is False:
+                if i+1 == numArgs or args[i+1].isdigit() is False:
                     sys.stderr.write('-n requires a numeric argument\n')
                     sys.exit(1)
-                maxRunners = int(sys.argv[i+1])
+                maxRunners = int(args[i+1])
                 i += 2
         elif arg == '-q':
             printFailuresOnly = True
@@ -617,7 +617,7 @@ if __name__ == "__main__":
                 if i+1 == numArgs:
                     sys.stderr.write('-m needs a value\n')
                     sys.exit(1)
-                specificTestPattern = sys.argv[i+1]
+                specificTestPattern = args[i+1]
                 i += 2
             else:
                 specificTestPattern = arg[2:]
@@ -642,6 +642,9 @@ if __name__ == "__main__":
         sys.stderr.write(str(e) + '\n')
         sys.exit(1)
 
+    signal.signal(signal.SIGTERM, handle_sigTerm)
+    signal.signal(signal.SIGINT, handle_sigTerm)
+
     # Find directory to run
     if len(argPaths) == 0:
         directories = ['.']
@@ -665,3 +668,7 @@ if __name__ == "__main__":
         tester.runTests(directories, files)
     except KeyboardInterrupt:
         handle_sigTerm(None, None)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
