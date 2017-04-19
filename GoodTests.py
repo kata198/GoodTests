@@ -159,7 +159,7 @@ class GoodTests(object):
     @staticmethod
     def _cleanDirectoryNames(directories):
         '''
-            _cleanDirectoryNames - Cleanup directory names (make sure they don't end in a leading slash)
+            _cleanDirectoryNames - Cleanup directory names ( unroll to the real path )
 
             @param directories list<str> - A list of directory names to cleanup
 
@@ -167,13 +167,7 @@ class GoodTests(object):
         '''
         ret = []
         for directory in directories:
-            if directory.endswith(os.sep):
-                if directory == '/':
-                    # If unix root, append a dot as /./ is same as /
-                    directory = '/.'
-                else:
-                    directory = directory[:-1]
-            ret.append(directory)
+            ret.append(os.path.realpath(directory))
         return ret
 
     @staticmethod
@@ -206,7 +200,7 @@ class GoodTests(object):
         '''
 
         sys.path += [directory]
-        testFiles = glob.glob(directory + '/test_*.py')
+        testFiles = glob.glob(directory + os.sep + 'test_*.py')
         testFiles.sort()
 
 
