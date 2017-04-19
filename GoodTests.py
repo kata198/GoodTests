@@ -5,6 +5,7 @@ import glob
 import multiprocessing
 import os
 import re
+import shutil
 import signal
 import sys
 import time
@@ -155,11 +156,55 @@ class GoodTests(object):
         return self._tasksLeft()
 
 
+    @staticmethod
+    def _cleanDirectoryNames(directories):
+        '''
+            _cleanDirectoryNames - Cleanup directory names (make sure they don't end in a leading slash)
+
+            @param directories list<str> - A list of directory names to cleanup
+
+            @return list<str> - Cleaned up directory names
+        '''
+        ret = []
+        for directory in directories:
+            if directory.endswith(os.sep):
+                if directory == '/':
+                    # If unix root, append a dot as /./ is same as /
+                    directory = '/.'
+                else:
+                    directory = directory[:-1]
+            ret.append(directory)
+        return ret
+
+    @staticmethod
+    def removePycacheDir(directory):
+        '''
+            removePycacheDir - Removes the pycache dir from a directory.
+
+            @param directory <str> - A cleaned-up directory name (no trailing sep)
+        '''
+        pycacheDir = directory + os.sep + '__pycache__'
+
+        try:
+            if os.path.isdir(pycacheDir):
+                shutil.rmtree(pycacheDir, ignore_errors=True)
+        except:
+            print ( "Warning: Failed to remove pycache dir: " + pycacheDir )
+            pass
+
 
     def getTestsForDirectory(self, directory, specificTest=None):
-        ''' Run all tests in a directory, where a test is any file that begins with test_ and ends in .py '''
-        if directory.endswith('/'):
-            directory = directory[:-1]
+        '''
+            getTestsForDirectory - Gather all tests in a given directory.
+
+            A test begins with test_ and ends with .py
+
+            @param directory <str> - A path to a directory. This should be cleaned up first ( #_cleanDirectoryNames )
+            @param specificTest <None/str> - A specific test filter to append with matched tests, for when only certain tests are ran
+
+            @return list ( tuple<str, str/None>  ) - A list of all test files found, coupled potentially with a specific test
+        '''
+
         sys.path += [directory]
         testFiles = glob.glob(directory + '/test_*.py')
         testFiles.sort()
@@ -171,8 +216,12 @@ class GoodTests(object):
         '''
            Run all tests in directories
         '''
+        directories = self._cleanDirectoryNames(directories)
+
         for directory in directories:
+            self.removePycacheDir(directory)
             self.testQueue += self.getTestsForDirectory(directory, specificTest)
+
         for file in files:
             self.testQueue.append( (file, specificTest) )
 
