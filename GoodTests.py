@@ -537,9 +537,6 @@ def printUsage():
            -q                       - Quiet (only print failures)
            -t                       - Print extra timing information
 
-           --pdb                    - When an assertion fails, begin a pdb session at
-                                       that point. Requires n=1
-
            --no-colour              - Strip out colours from output
            --no-color
 
