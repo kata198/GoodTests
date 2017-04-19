@@ -612,12 +612,16 @@ if __name__ == "__main__":
         elif arg == '-q':
             printFailuresOnly = True
             i += 1
-        elif arg == '-m':
-            if i+1 == numArgs:
-                sys.stderr.write('-m needs a value\n')
-                sys.exit(1)
-            specificTestPattern = sys.argv[i+1]
-            i += 2
+        elif arg.startswith('-m'):
+            if arg == '-m':
+                if i+1 == numArgs:
+                    sys.stderr.write('-m needs a value\n')
+                    sys.exit(1)
+                specificTestPattern = sys.argv[i+1]
+                i += 2
+            else:
+                specificTestPattern = arg[2:]
+                i += 1
         elif arg == '-t':
             extraTimes = True
             i += 1
