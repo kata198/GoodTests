@@ -66,6 +66,12 @@ def findGoodTests():
         "success" : success 
     }
 
+def try_pip_install():
+    pipe = subprocess.Popen('pip install GoodTests', shell=True)
+    res = pipe.wait()
+    
+    return res
+
 def download_goodTests(GOODTESTS_URL=None):
     '''
         download_goodTests - Attempts to download GoodTests, using the default global url (or one provided).
@@ -95,11 +101,9 @@ def download_goodTests(GOODTESTS_URL=None):
             import urllib.request as urllib
         except:
             sys.stderr.write('Failed to import urllib. Trying pip.\n')
-            import subprocess
-            pipe = subprocess.Popen('pip install GoodTests', shell=True)
-            res = pipe.wait()
+            res = try_pip_install()
             if res != 0:
-                sys.stderr.write('Failed to install GoodTests with pip ordirect download. aborting.\n')
+                sys.stderr.write('Failed to install GoodTests with pip or direct download. aborting.\n')
                 return 1
     try:
         response = urllib.urlopen(GOODTESTS_URL)
@@ -108,7 +112,11 @@ def download_goodTests(GOODTESTS_URL=None):
             contents = contents.decode('ascii')
     except Exception as e:
         sys.stderr.write('Failed to download GoodTests.py from "%s"\n%s\n' %(GOODTESTS_URL, str(e)))
-        return 1
+        sys.stderr.write('\nTrying pip.\n')
+        res = try_pip_install()
+        if res != 0:
+            sys.stderr.write('Failed to install GoodTests with pip or direct download. aborting.\n')
+            return 1
     try:
         with open('GoodTests.py', 'w') as f:
             f.write(contents)
