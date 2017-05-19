@@ -15,7 +15,6 @@
 import imp
 import os
 
-import glob
 import subprocess
 import sys
 
@@ -175,8 +174,6 @@ def main(thisDir=None, additionalArgs=[], MY_PACKAGE_MODULE=None, ALLOW_SITE_INS
 
     os.chdir(thisDir)
 
-    didDownload = False
-    
     goodTestsInfo = findGoodTests()
     if goodTestsInfo['success'] is False:
         downloadRet = download_goodTests(GOODTESTS_URL)
@@ -187,9 +184,6 @@ def main(thisDir=None, additionalArgs=[], MY_PACKAGE_MODULE=None, ALLOW_SITE_INS
             sys.stderr.write('Could not download or find GoodTests.py. Try to download it yourself using "pip install GoodTests", or wget %s\n' %( GOODTESTS_URL,))
             return 1
 
-    PYTHON_ENDINGS = ('.py', '.pyc', '.pyo')
-
-    origMyPackageModule = MY_PACKAGE_MODULE[:]
     baseName = os.path.basename(MY_PACKAGE_MODULE)
     dirName = os.path.dirname(MY_PACKAGE_MODULE)
     
