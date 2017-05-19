@@ -1,8 +1,9 @@
 
 2.1.1 - May 19 2017
 
-- Fix issue with obscure usage (probably not used anywhere) -- wherein
+- distrib/runTests.py: Fix issue with obscure usage (probably not used anywhere) -- wherein
 MY_PACKAGE_MODULE is defined as a .py file explicitly and not a directory.
+- distrib/runTests.py: Try pip install when download fails for any reason
 
 
 2.1.0 - Apr 19 2017
