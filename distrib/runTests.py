@@ -230,7 +230,7 @@ def main(thisDir=None, additionalArgs=[], MY_PACKAGE_MODULE=None, ALLOW_SITE_INS
         __import__(baseName)
     except ImportError as e:
         if baseName.endswith(('.py', '.pyc', '.pyo')):
-            MY_PACKAGE_MODULE = baseName[baseName.rindex('.')]
+            MY_PACKAGE_MODULE = baseName[ : baseName.rindex('.')]
 
         if e.name != MY_PACKAGE_MODULE:
             sys.stderr.write('Error while importing %s: %s\n Likely this is another dependency that needs to be installed\nPerhaps run "pip install %s" or install the providing package.\n\n' %(e.name, str(e), e.name))
