@@ -1,3 +1,25 @@
+2.2.0 - Nov 19 2017
+
+- distrib/runTests.py - Change to use sys.executable when executing GoodTests,
+which allows you to run as "python2 ./runTests.py" to run test suite in
+python2, and "python3 ./runTests.py" to run test suite in python3
+
+- distrib/runTests.py - Improve the fallback pip install for obtaining GoodTests.
+It now forces execution to happen with the sys.executable (currently running python
+executable). Also instead of blindly relying on the shell to execute "pip
+install" properly, we go through the following:
+  1. Try to use the pip module directly to install GoodTests
+  2. If that fails, try to locate pip executable
+     2a.) First, try looking at sys.executable directory for a "pip"
+	 executable (so, if running under /opt/python-3.6/bin/python we will try
+	 /opt/python-3.6/bin/pip), same with virtualenvs
+	 2b.) If that isn't found, then we scan PATH environment variable to
+	 locate the first usable pip.
+
+This ensures that we use the correct version of python (instead of, for
+example, using python3 to try to install into a python2 virtualenv in some
+cases, etc.) 
+
 
 2.1.1 - May 19 2017
 
@@ -83,3 +105,4 @@ dependencies (and suggest how to resolve)
  - Fix typo in help description
  - Add MANIFEST.in to the project
  - Add "distrib" directory, which contains 
+
