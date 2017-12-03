@@ -1,3 +1,12 @@
+2.3.0 - ??? ?? ????
+
+- Change class and method search to use the 'inspect' module to remove slow calls to dir() function. This is most noticable on python2, which I benched at a 40% speed improvement on AdvancedHTMLParser test suite.
+
+- Some micro-optimizations involving using local scope within loops and comprehensions
+
+- Some updates to docstrings and comments
+
+
 2.2.0 - Nov 19 2017
 
 - distrib/runTests.py - Change to use sys.executable when executing GoodTests,
