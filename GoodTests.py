@@ -13,6 +13,7 @@
 import glob
 import multiprocessing
 import os
+import inspect
 import re
 import shutil
 import signal
@@ -108,6 +109,55 @@ class GoodTests(object):
                 re.compile(specificTestPattern)
             except:
                 raise ValueError('Cannot compile pattern: ' + specificTestPattern)
+
+    @staticmethod
+    def _getTestClasses(module):
+        '''
+            _getTestClasses - Return a dict of test classes extracted from a module
+
+                @param module <module> - A module
+
+                @return dict < className : classObj > - A dict of test class names to test class object
+
+                    as found in #module.  A test class begins or ends with "Test"
+        '''
+
+        return { inspectInfo[0] : inspectInfo[1]
+                    for inspectInfo in
+                        inspect.getmembers(module, predicate=inspect.isclass)
+                    if inspectInfo[0].startswith('Test') or inspectInfo[0].endswith('Test')
+        }
+
+    @staticmethod
+    def _getTestMethodsNewStyle(testClass):
+        '''
+            _getTestMethodsNewStyle - Get test methods which follow the "new style" of names (i.e. begins with "test_")
+
+                @param testClass <class object> - The class to scan
+
+                @return dict < functionName : functionObj > - A dict of test method names to the test methods on #testClass
+        '''
+        return { inspectInfo[0] : inspectInfo[1]
+                    for inspectInfo in
+                        inspect.getmembers(testClass, predicate=inspect.ismethod)
+                    if inspectInfo[0].startswith('test_')
+        }
+
+
+    @staticmethod
+    def _getTestMethodsOldStyle(testClass):
+        '''
+            _getTestMethodsOldStyle - Get test methods which follow the "old style" of names (i.e. begins with "test")
+
+                @param testClass <class object> - The class to scan
+
+                @return dict < functionName : functionObj > - A dict of test method names to the test methods on #testClass
+        '''
+        return { inspectInfo[0] : inspectInfo[1]
+                    for inspectInfo in
+                        inspect.getmembers(testClass, predicate=inspect.ismethod)
+                    if inspectInfo[0].startswith('test')
+        }
 
 
     def output(self, text):
@@ -386,16 +436,15 @@ class GoodTests(object):
             self._childObjToParent((testFile, ret))
             return ret
 
-        testClassNames = [testClassName for testClassName in dir(module) if testClassName.startswith('Test') or testClassName.endswith('Test')]
+        testClasses = GoodTests._getTestClasses(module)
 
         failedResults = {} # Keyed by testClassName, contains tuple of testFunctionName and traceback status
         passCount = 0
         testsRunCount = 0
 
-        for testClassName in testClassNames:
-            TestClass = getattr(module, testClassName)
+        for testClassName, TestClass in testClasses.items():
 
-            oldStyle = bool(testClassName.endswith('Test'))
+            oldStyle = bool(testClassName.endswith('Test') and not testClassName.startswith('Test'))
 
             try:
                 instantiatedTestClass = TestClass()
@@ -403,17 +452,23 @@ class GoodTests(object):
                 # This is an import beginning with 'Test'
                 continue
 
-            if specificTestPattern:
-                testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if re.match(specificTestPattern, memberName) and memberName.startswith('test') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
-                if not testFunctionNames:
-                    # Try .* on either side
-                    specificTestPattern = '.*' + specificTestPattern + '.*'
-                    testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if re.match(specificTestPattern, memberName) and memberName.startswith('test') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
+            if not oldStyle:
+                testFunctions = GoodTests._getTestMethodsNewStyle(instantiatedTestClass)
             else:
-                if not oldStyle:
-                    testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if memberName.startswith('test_') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
-                else:
-                    testFunctionNames = [memberName for memberName in dir(instantiatedTestClass) if memberName.startswith('test') and type(getattr(instantiatedTestClass, memberName)) == types.MethodType]
+                testFunctions = GoodTests._getTestMethodsOldStyle(instantiatedTestClass)
+
+            if specificTestPattern:
+                specificTestPatternRE = re.compile(specificTestPattern)
+
+                # Filter out test functions
+                testFunctionsFiltered = { functionName : funcObj for functionName, funcObj in testFunctions.items() if specificTestPatternRE.match(functionName) }
+
+                if not testFunctionsFiltered:
+                    # If we didn't get any matches, try .* on either side
+                    specificTestPatternRE = re.compile('.*' + specificTestPattern + '.*')
+                    testFunctionsFiltered = { functionName : funcObj for functionName, funcObj in testFunctions.items() if specificTestPatternRE.match(functionName) }
+
+                testFunctions = testFunctionsFiltered
 
             # General setup_class
             setupSuccess = True
@@ -453,9 +508,9 @@ class GoodTests(object):
 
             if setupSuccess is True:
                 # Run test methods (and method-specific setup/teardown)
-                for testFunctionName in testFunctionNames:
+                for testFunctionName, testFunction in testFunctions.items():
                     timeStart = time.time()
-                    (status, message) = self.runTestMethod(instantiatedTestClass, testFile, testFunctionName)
+                    (status, message) = self.runTestMethod(instantiatedTestClass, testFile, testFunction)
                     timeEnd = time.time()
                     if self.extraTimes is True:
                         self.output(testFunctionName + " took " + str(timeEnd - timeStart) + " seconds")
@@ -516,7 +571,7 @@ class GoodTests(object):
         '''
         return (testFile, str(instantiatedTestClass.__class__.__name__), testFunctionName)
 
-    def runTestMethod(self, instantiatedTestClass, testFile, testFunctionName):
+    def runTestMethod(self, instantiatedTestClass, testFile, testFunction):
         '''
            runTestMethod - Run a specific method in a specific test.
 
@@ -529,7 +584,7 @@ class GoodTests(object):
 
                @param testFile - string name of origin file
 
-               @param testFunctionName - string of test function name
+               @param testFunction <method/str> - string of test function name, or the function method itself
 
 
            @return tuple<str, str> - Returns a tuple of execution status
@@ -537,6 +592,12 @@ class GoodTests(object):
                first value is 'PASS' or 'FAIL'
                second value is function's traceback or empty string
         '''
+        if isinstance(testFunction, types.MethodType):
+            testFunctionName = testFunction.__name__
+        else:
+            testFunctionName = testFunction
+            testFunction = getattr(instantiatedTestClass, testFunctionName)
+
         try:
             # General method setup
             if hasattr(instantiatedTestClass, 'setup_method'):
@@ -557,7 +618,7 @@ class GoodTests(object):
         try:
 
             # Execute Test
-            getattr(instantiatedTestClass, testFunctionName)()
+            testFunction()
 
 
         except AssertionError as e:
