@@ -7,3 +7,4 @@ include GoodTests.py
 include LICENSE
 include install.sh
 recursive-include distrib *
+recursive-include doc *.html
