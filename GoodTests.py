@@ -168,11 +168,13 @@ class GoodTests(object):
         '''
            _cleanupProcesses - Cleanup any "finished" processes
         '''
-        for i in xrange(len(self.runningProcesses)):
-            runningProcess = self.runningProcesses[i]
+        runningProcesses = self.runningProcesses
+
+        for i in xrange(len(runningProcesses)):
+            runningProcess = runningProcesses[i]
             if runningProcess[0] and not runningProcess[0].is_alive():
                 runningProcess[0].join()
-                self.runningProcesses[i] = [None, None]
+                runningProcesses[i] = [None, None]
 
     def _getAvailableData(self):
         '''
@@ -201,7 +203,8 @@ class GoodTests(object):
 
            @return <int> - number of tasks left to process
         '''
-        return len(self.testQueue) + len([x for x in self.runningProcesses if x[0] is not None])
+        runningProcesses = self.runningProcesses
+        return len(self.testQueue) + len([x for x in runningProcesses if x[0] is not None])
 
     def _runNextTasks(self):
         '''
@@ -209,23 +212,29 @@ class GoodTests(object):
 
            @return <int> - number of tasks left to process
         '''
-        if len(self.testQueue) == 0:
+        testQueue = self.testQueue
+
+        if len(testQueue) == 0:
             return self._getNumberOfTasksRemaining()
 
         if self.noFork:
-            nextTest = self.testQueue.popleft()
+            nextTest = testQueue.popleft()
             self.runTest(nextTest, self.specificTestPattern)
         else:
-            for i in xrange(len(self.runningProcesses)):
-                if self.runningProcesses[i][0] is None:
-                    # Nothing running in this slot, queue something
-                    nextTest = self.testQueue.popleft()
-                    childProcess = multiprocessing.Process(target=self.runTest, args=(nextTest, self.specificTestPattern))
-                    childProcess.start()
-                    self.runningProcesses[i][0] = childProcess
-                    self.runningProcesses[i][1] = nextTest
+            runningProcesses = self.runningProcesses
+            runTest = self.runTest
+            specificTestPattern = self.specificTestPattern
 
-                    if len(self.testQueue) == 0:
+            for i in xrange(len(runningProcesses)):
+                if runningProcesses[i][0] is None:
+                    # Nothing running in this slot, queue something
+                    nextTest = testQueue.popleft()
+                    childProcess = multiprocessing.Process(target=runTest, args=(nextTest, specificTestPattern))
+                    childProcess.start()
+                    runningProcesses[i][0] = childProcess
+                    runningProcesses[i][1] = nextTest
+
+                    if len(testQueue) == 0:
                         # Nothing left to queue, return running count
                         return self._getNumberOfTasksRemaining()
 
