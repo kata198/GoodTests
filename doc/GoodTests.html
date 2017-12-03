@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html ><head ><title >Python: module GoodTests</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head><body bgcolor="#f0f0f8" >
+
+<table width="100%" cellspacing="0" cellpadding="2" border="0" summary="heading" >
+<tr bgcolor="#7799ee" >
+<td valign="bottom" >&nbsp;<br />
+<font color="#ffffff" face="helvetica, arial" >&nbsp;<br /><big ><big ><strong >GoodTests</strong></big></big> (version 2.3.0rc1)</font></td><td align="right" valign="bottom" ><font color="#ffffff" face="helvetica, arial" ><a href="GoodTests.html" >index</a></font></td></tr></table>
+    <p ><tt >Copyright&nbsp;2011,&nbsp;2015,&nbsp;2016,&nbsp;2017&nbsp;(c)&nbsp;Timothy&nbsp;Savannah&nbsp;under&nbsp;LGPLv2.1,&nbsp;All&nbsp;Rights&nbsp;Reserved.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;a&nbsp;LICENSE&nbsp;file&nbsp;was&nbsp;not&nbsp;included&nbsp;in&nbsp;this&nbsp;distribution,&nbsp;the&nbsp;license&nbsp;can&nbsp;be&nbsp;found<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;at&nbsp;https://github.com/kata198/<a href="#GoodTests" >GoodTests</a>/blob/master/LICENSE</tt></p>
+<p >
+<table width="100%" cellspacing="0" cellpadding="2" border="0" summary="section" >
+<tr bgcolor="#aa55cc" >
+<td colspan="3" valign="bottom" >&nbsp;<br />
+<font color="#ffffff" face="helvetica, arial" ><big ><strong >Modules</strong></big></font></td></tr>
+    
+<tr ><td bgcolor="#aa55cc" ><tt >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td >&nbsp;</td>
+<td width="100%" ><table width="100%" summary="list" ><tr ><td width="25%" valign="top" ><a href="glob.html" >glob</a><br />
+<a href="inspect.html" >inspect</a><br />
+<a href="multiprocessing.html" >multiprocessing</a><br />
+</td><td width="25%" valign="top" ><a href="os.html" >os</a><br />
+<a href="pdb.html" >pdb</a><br />
+<a href="re.html" >re</a><br />
+</td><td width="25%" valign="top" ><a href="shutil.html" >shutil</a><br />
+<a href="signal.html" >signal</a><br />
+<a href="sys.html" >sys</a><br />
+</td><td width="25%" valign="top" ><a href="time.html" >time</a><br />
+<a href="traceback.html" >traceback</a><br />
+<a href="types.html" >types</a><br />
+</td></tr></table></td></tr></table><p >
+<table width="100%" cellspacing="0" cellpadding="2" border="0" summary="section" >
+<tr bgcolor="#ee77aa" >
+<td colspan="3" valign="bottom" >&nbsp;<br />
+<font color="#ffffff" face="helvetica, arial" ><big ><strong >Classes</strong></big></font></td></tr>
+    
+<tr ><td bgcolor="#ee77aa" ><tt >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td >&nbsp;</td>
+<td width="100%" ><dl >
+<dt ><font face="helvetica, arial" ><a href="builtins.html#object" >builtins.object</a>
+</font></dt><dd >
+<dl >
+<dt ><font face="helvetica, arial" ><a href="GoodTests.html#GoodTests" >GoodTests</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p >
+<table width="100%" cellspacing="0" cellpadding="2" border="0" summary="section" >
+<tr bgcolor="#ffc8d8" >
+<td colspan="3" valign="bottom" >&nbsp;<br />
+<font color="#000000" face="helvetica, arial" ><a name="GoodTests" >class <strong >GoodTests</strong></a>(<a href="builtins.html#object" >builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8" ><td rowspan="2" ><tt >&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan="2" ><tt ><a href="#GoodTests" >GoodTests</a>&nbsp;-&nbsp;Runs&nbsp;tests&nbsp;well.<br />&nbsp;</tt></td></tr>
+<tr ><td >&nbsp;</td>
+<td width="100%" >Methods defined here:<br />
+<dl ><dt ><a name="GoodTests-__init__" ><strong >__init__</strong></a>(self, maxRunners=2, printFailuresOnly=False, extraTimes=False, useColour=True, specificTestPattern=None, usePdb=False)</dt><dd ><tt >__init__&nbsp;-&nbsp;Create&nbsp;a&nbsp;<a href="#GoodTests" >GoodTests</a>&nbsp;<a href="builtins.html#object" >object</a>.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;maxRunner&nbsp;&lt;int&gt;&nbsp;Default&nbsp;DEFAULT_MAX_RUNNERS&nbsp;(number&nbsp;of&nbsp;cpus&nbsp;on&nbsp;system)&nbsp;-&nbsp;<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Set&nbsp;this&nbsp;to&nbsp;the&nbsp;number&nbsp;of&nbsp;concurrent&nbsp;processes&nbsp;you&nbsp;want&nbsp;to&nbsp;run.&nbsp;For&nbsp;tests&nbsp;without&nbsp;any&nbsp;blocking&nbsp;whatsoever,<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;you&nbsp;may&nbsp;find&nbsp;it&nbsp;faster&nbsp;to&nbsp;leave&nbsp;maxRunners=1,&nbsp;as&nbsp;there&nbsp;is&nbsp;a&nbsp;minor&nbsp;overhead&nbsp;to&nbsp;using&nbsp;&gt;1.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Also,&nbsp;required&nbsp;to&nbsp;be&nbsp;=1&nbsp;when&nbsp;doPdb=True&nbsp;(if&nbsp;not,&nbsp;a&nbsp;warning&nbsp;will&nbsp;be&nbsp;printed&nbsp;and&nbsp;it&nbsp;will&nbsp;be&nbsp;forced&nbsp;to&nbsp;1)<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;printFailuresOnly&nbsp;&lt;bool&gt;&nbsp;Default&nbsp;False,&nbsp;if&nbsp;True&nbsp;will&nbsp;only&nbsp;print&nbsp;the&nbsp;Failures&nbsp;and&nbsp;the&nbsp;summary.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;True,&nbsp;then&nbsp;every&nbsp;method&nbsp;which&nbsp;passes&nbsp;will&nbsp;print&nbsp;a&nbsp;line<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;extraTimes&nbsp;&lt;bool&gt;&nbsp;default&nbsp;False.&nbsp;If&nbsp;True,&nbsp;the&nbsp;time&nbsp;each&nbsp;test&nbsp;method,&nbsp;setup,&nbsp;and&nbsp;teardown&nbsp;function&nbsp;takes&nbsp;will&nbsp;be&nbsp;printed.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;useColour&nbsp;&lt;bool&gt;&nbsp;default&nbsp;True.&nbsp;If&nbsp;True,&nbsp;will&nbsp;use&nbsp;colour&nbsp;output&nbsp;(works&nbsp;on&nbsp;POSIX/Linux/Unix/Mac&nbsp;terminals).&nbsp;False&nbsp;will&nbsp;not&nbsp;include&nbsp;colours.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;specificTestPattern&nbsp;&lt;str/None&gt;&nbsp;default&nbsp;None&nbsp;-&nbsp;If&nbsp;a&nbsp;string&nbsp;is&nbsp;provided,&nbsp;this&nbsp;pattern&nbsp;will&nbsp;be&nbsp;compiled&nbsp;and&nbsp;mathced&nbsp;against&nbsp;functions.&nbsp;Only&nbsp;test&nbsp;functions&nbsp;which&nbsp;match&nbsp;this&nbsp;pattern&nbsp;will&nbsp;be&nbsp;run.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;example,&nbsp;specificTestPattern="smoke"&nbsp;will&nbsp;only&nbsp;run&nbsp;test&nbsp;methods&nbsp;which&nbsp;contain&nbsp;'smoke'&nbsp;in&nbsp;the&nbsp;name.</tt></dd></dl>
+
+<dl ><dt ><a name="GoodTests-getTestsForDirectory" ><strong >getTestsForDirectory</strong></a>(self, directory)</dt><dd ><tt >getTestsForDirectory&nbsp;-&nbsp;Gather&nbsp;all&nbsp;tests&nbsp;in&nbsp;a&nbsp;given&nbsp;directory.<br />
+&nbsp;<br />
+A&nbsp;test&nbsp;begins&nbsp;with&nbsp;test_&nbsp;and&nbsp;ends&nbsp;with&nbsp;.py<br />
+&nbsp;<br />
+@param&nbsp;directory&nbsp;&lt;str&gt;&nbsp;-&nbsp;A&nbsp;path&nbsp;to&nbsp;a&nbsp;directory.&nbsp;This&nbsp;should&nbsp;be&nbsp;cleaned&nbsp;up&nbsp;first&nbsp;(&nbsp;#_cleanDirectoryNames&nbsp;)<br />
+&nbsp;<br />
+@return&nbsp;list&nbsp;(&nbsp;tuple&lt;str,&nbsp;str/None&gt;&nbsp;&nbsp;)&nbsp;-&nbsp;A&nbsp;list&nbsp;of&nbsp;all&nbsp;test&nbsp;files&nbsp;found,&nbsp;coupled&nbsp;potentially&nbsp;with&nbsp;a&nbsp;specific&nbsp;test</tt></dd></dl>
+
+<dl ><dt ><a name="GoodTests-output" ><strong >output</strong></a>(self, text)</dt><dd ><tt >output&nbsp;-&nbsp;Called&nbsp;to&nbsp;output&nbsp;text&nbsp;to&nbsp;stderr,&nbsp;optionally&nbsp;stripping&nbsp;colour&nbsp;if&nbsp;disabled<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;text&nbsp;&lt;str&gt;&nbsp;-&nbsp;Text&nbsp;to&nbsp;send&nbsp;out</tt></dd></dl>
+
+<dl ><dt ><a name="GoodTests-runTest" ><strong >runTest</strong></a>(self, testFile, specificTestPattern=None, runnerIdx=None)</dt><dd ><tt >runTest&nbsp;-&nbsp;Run&nbsp;a&nbsp;specific&nbsp;test&nbsp;file&nbsp;(where&nbsp;testFile&nbsp;is&nbsp;an&nbsp;importable&nbsp;python&nbsp;name&nbsp;[i.e.&nbsp;test_Something.py]).<br />
+All&nbsp;classes&nbsp;beginning&nbsp;with&nbsp;'Test'&nbsp;are&nbsp;going&nbsp;to&nbsp;be&nbsp;tested.<br />
+&nbsp;<br />
+setup_(testClassName)&nbsp;or&nbsp;setup_class&nbsp;and&nbsp;teardown_(testClassName)&nbsp;or&nbsp;teardown_class&nbsp;are&nbsp;run&nbsp;at&nbsp;approperate&nbsp;times<br />
+&nbsp;<br />
+Returns&nbsp;tuple&nbsp;(failedResults&lt;testClassName&gt;(testFunctionName,&nbsp;message),&nbsp;testsPassedCount,&nbsp;totalTestsRun)<br />
+&nbsp;<br />
+Passes&nbsp;to&nbsp;parent&nbsp;(testFile,&nbsp;return&nbsp;value)<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;testFile&nbsp;&lt;str&gt;&nbsp;-&nbsp;The&nbsp;filename&nbsp;to&nbsp;run<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;specificTestPattern&nbsp;&lt;str/None&gt;&nbsp;default&nbsp;None&nbsp;-&nbsp;If&nbsp;provided,&nbsp;will&nbsp;only&nbsp;run&nbsp;methods&nbsp;matching<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;pattern.</tt></dd></dl>
+
+<dl ><dt ><a name="GoodTests-runTestMethod" ><strong >runTestMethod</strong></a>(self, instantiatedTestClass, testFile, testFunction)</dt><dd ><tt >runTestMethod&nbsp;-&nbsp;Run&nbsp;a&nbsp;specific&nbsp;method&nbsp;in&nbsp;a&nbsp;specific&nbsp;test.<br />
+&nbsp;<br />
+setup_(methodName)&nbsp;will&nbsp;be&nbsp;run&nbsp;for&nbsp;paticular&nbsp;methodName,&nbsp;as&nbsp;well&nbsp;as&nbsp;setup_method&nbsp;(old&nbsp;school).<br />
+&nbsp;<br />
+teardown_(methodName)&nbsp;will&nbsp;be&nbsp;run&nbsp;after&nbsp;method,&nbsp;or&nbsp;teardown_method&nbsp;(old&nbsp;school).<br />
+&nbsp;<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;instantiatedTestClass&nbsp;-&nbsp;module&nbsp;that&nbsp;has&nbsp;been&nbsp;initted<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;testFile&nbsp;-&nbsp;string&nbsp;name&nbsp;of&nbsp;origin&nbsp;file<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;testFunction&nbsp;&lt;method/str&gt;&nbsp;-&nbsp;string&nbsp;of&nbsp;test&nbsp;function&nbsp;name,&nbsp;or&nbsp;the&nbsp;function&nbsp;method&nbsp;itself<br />
+&nbsp;<br />
+&nbsp;<br />
+@return&nbsp;tuple&lt;str,&nbsp;str&gt;&nbsp;-&nbsp;Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;execution&nbsp;status<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;first&nbsp;value&nbsp;is&nbsp;'PASS'&nbsp;or&nbsp;'FAIL'<br />
+&nbsp;&nbsp;&nbsp;&nbsp;second&nbsp;value&nbsp;is&nbsp;function's&nbsp;traceback&nbsp;or&nbsp;empty&nbsp;string</tt></dd></dl>
+
+<dl ><dt ><a name="GoodTests-runTests" ><strong >runTests</strong></a>(self, directories, files)</dt><dd ><tt >runTests&nbsp;-&nbsp;Run&nbsp;all&nbsp;tests&nbsp;in&nbsp;directories<br />
+&nbsp;<br />
+&nbsp;@param&nbsp;directories&nbsp;list&lt;str&gt;&nbsp;-&nbsp;A&nbsp;list&nbsp;of&nbsp;directories&nbsp;to&nbsp;process<br />
+&nbsp;<br />
+&nbsp;@param&nbsp;files&lt;str&gt;&nbsp;-&nbsp;A&nbsp;list&nbsp;of&nbsp;filenames&nbsp;to&nbsp;process</tt></dd></dl>
+
+<dl ><dt ><a name="GoodTests-terminate" ><strong >terminate</strong></a>(self)</dt><dd ><tt >terminate&nbsp;-&nbsp;Kill&nbsp;all&nbsp;running&nbsp;processes</tt></dd></dl>
+
+<hr />
+Static methods defined here:<br />
+<dl ><dt ><a name="GoodTests-removePycacheDir" ><strong >removePycacheDir</strong></a>(directory)</dt><dd ><tt >removePycacheDir&nbsp;-&nbsp;Removes&nbsp;the&nbsp;pycache&nbsp;dir&nbsp;from&nbsp;a&nbsp;directory.<br />
+&nbsp;<br />
+@param&nbsp;directory&nbsp;&lt;str&gt;&nbsp;-&nbsp;A&nbsp;cleaned-up&nbsp;directory&nbsp;name&nbsp;(no&nbsp;trailing&nbsp;sep)</tt></dd></dl>
+
+<hr />
+Data descriptors defined here:<br />
+<dl ><dt ><strong >__dict__</strong></dt>
+<dd ><tt >dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl ><dt ><strong >__weakref__</strong></dt>
+<dd ><tt >list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></p></td></tr></table><p >
+<table width="100%" cellspacing="0" cellpadding="2" border="0" summary="section" >
+<tr bgcolor="#eeaa77" >
+<td colspan="3" valign="bottom" >&nbsp;<br />
+<font color="#ffffff" face="helvetica, arial" ><big ><strong >Functions</strong></big></font></td></tr>
+    
+<tr ><td bgcolor="#eeaa77" ><tt >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td >&nbsp;</td>
+<td width="100%" ><dl ><dt ><a name="-main" ><strong >main</strong></a>(args)</dt><dd ><tt >main&nbsp;-&nbsp;Begin&nbsp;execution&nbsp;of&nbsp;<a href="#GoodTests" >GoodTests</a>.py&nbsp;with&nbsp;given&nbsp;list&nbsp;of&nbsp;arguments.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;is&nbsp;called&nbsp;when&nbsp;you&nbsp;run&nbsp;"<a href="#GoodTests" >GoodTests</a>.py&nbsp;[someDir]"<br />
+&nbsp;<br />
+&nbsp;&nbsp;@param&nbsp;args&nbsp;list&lt;str&gt;&nbsp;-&nbsp;A&nbsp;list&nbsp;of&nbsp;arguments&nbsp;(&nbsp;sys.argv[1:]&nbsp;)&nbsp;<br />
+&nbsp;<br />
+&nbsp;&nbsp;@return&nbsp;&lt;int&gt;&nbsp;-&nbsp;The&nbsp;exitcode&nbsp;for&nbsp;this&nbsp;execution&nbsp;(for&nbsp;use&nbsp;with&nbsp;sys.exit)<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;TODO:&nbsp;We&nbsp;currently&nbsp;exit&nbsp;with&nbsp;code&nbsp;"0"&nbsp;if&nbsp;tests&nbsp;fail.&nbsp;Should&nbsp;this&nbsp;be&nbsp;changed&nbsp;to&nbsp;"1"?</tt></dd></dl>
+ <dl ><dt ><a name="-printUsage" ><strong >printUsage</strong></a>()</dt><dd ><tt >printUsage&nbsp;-&nbsp;Print&nbsp;&nbsp;a&nbsp;"--help"&nbsp;listing&nbsp;of&nbsp;all&nbsp;supported&nbsp;arguments</tt></dd></dl>
+</td></tr></table><p >
+<table width="100%" cellspacing="0" cellpadding="2" border="0" summary="section" >
+<tr bgcolor="#55aa55" >
+<td colspan="3" valign="bottom" >&nbsp;<br />
+<font color="#ffffff" face="helvetica, arial" ><big ><strong >Data</strong></big></font></td></tr>
+    
+<tr ><td bgcolor="#55aa55" ><tt >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td >&nbsp;</td>
+<td width="100%" ><strong >__all__</strong> = ('GoodTests', 'printUsage', 'main')<br />
+<strong >__version_tuple__</strong> = (2, 3, 0)</td></tr></table>
+</p></p></p></p></body></html>
