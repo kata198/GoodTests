@@ -22,6 +22,8 @@ import time
 import traceback
 import types
 
+import pdb
+
 from collections import deque
 
 DEFAULT_MAX_RUNNERS = multiprocessing.cpu_count()
@@ -53,7 +55,7 @@ class GoodTests(object):
        GoodTests - Runs tests well.
     '''
 
-    def __init__(self, maxRunners=DEFAULT_MAX_RUNNERS, printFailuresOnly=False, extraTimes=False, useColour=True, specificTestPattern=None):
+    def __init__(self, maxRunners=DEFAULT_MAX_RUNNERS, printFailuresOnly=False, extraTimes=False, useColour=True, specificTestPattern=None, usePdb=False):
         '''
             __init__ - Create a GoodTests object.
 
@@ -77,6 +79,13 @@ class GoodTests(object):
                     For example, specificTestPattern="smoke" will only run test methods which contain 'smoke' in the name.
 
         '''
+        
+        self.usePdb = usePdb
+        if usePdb and maxRunners > 1:
+            sys.stderr.write('WARNING: pdb mode enabled, but maxRunners (number of processes, -n) was > 1 (%d). Setting to 1 to support pdb.\n\n')
+            maxRunners = 1
+
+
         # communicationPipe - A pipe used for sending data from the child back to the parent.
         #                       This is how the child communicates which tests have been ran and the result
         self.communicationPipe = multiprocessing.Pipe(False)
@@ -753,6 +762,19 @@ class GoodTests(object):
             tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) +  (tracebackInfo,)
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Assertion Error*****\n\033[91m%s\033[0m" % theTuple)
+
+            # TODO: Change this to re-enter the test function with a pdb prompt, so if folks manually
+            #          resolve the error and hit "continue", it will report something along the lines of
+            #          "First run of test_myMethod Failed, but was corrected in the debugger and PASSED."
+            if self.usePdb:
+                # If we have "pdb" mode enabled, print a quick help reference and drop to debug shell
+                self.output("\nASSERTION FAILED AND PDB ENABLED: DROPPING INTO DEBUGGER ---\n")
+                self.output("  (type 'help' followed by return for assistance with debugger)")
+                self.output(" Quick Ref (commands listed within square-brackets; enter commands without the bracket):\n\t[n]\t\t  - Next Line\n\t[s]\t\t  - Step into current line\n\t[c]\t\t  - Continue Execution\n\t[up/down]\t  - Move up or down in current stack\n\t[print ( X )]\t  - Print the variable 'X' in current context.\n\t[locals()]\t  - Print local variables in this scope\n\t[arbitrary code]\t  -Execute arbitrary code at current level\n")
+                # Use tb_next so this method does not show up in the frame, only the test method.
+                pdb.post_mortem(exc_traceback.tb_next)
+
+
             ret = ('FAIL', tracebackInfo)
         except Exception as e:
             # Exception while running test
@@ -797,7 +819,10 @@ def printUsage():
            -n [number]              - Specifies number of simultaneous executions 
                                         Default = # of processors (%d).
                                        You must use "-n 1" if using pdb
-                                      
+
+           --pdb                    - When an assertion fails, drop to a pdb shell within
+                                        the test code at the point of failure  ( forces -n1 )
+
 
            -m [regexp]              - Run methods matching a specific pattern
            -q                       - Quiet (only print failures)
@@ -836,6 +861,7 @@ def main(args):
     specificTestPattern = None
     extraTimes = False
     useColour = True
+    usePdb = False
 
 
     if sys.platform == 'win32':
@@ -882,6 +908,9 @@ def main(args):
             else:
                 specificTestPattern = arg[2:]
                 i += 1
+        elif arg == '--pdb':
+            usePdb = True
+            i += 1
         elif arg == '-t':
             extraTimes = True
             i += 1
@@ -897,7 +926,7 @@ def main(args):
     # init tester
     global tester
     try:
-        tester = GoodTests(maxRunners=maxRunners, printFailuresOnly=printFailuresOnly, extraTimes=extraTimes, useColour=useColour, specificTestPattern=specificTestPattern)
+        tester = GoodTests(maxRunners=maxRunners, printFailuresOnly=printFailuresOnly, extraTimes=extraTimes, useColour=useColour, specificTestPattern=specificTestPattern, usePdb=usePdb)
     except ValueError as e:
         sys.stderr.write(str(e) + '\n')
         sys.exit(1)
