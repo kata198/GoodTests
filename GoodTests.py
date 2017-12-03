@@ -660,7 +660,7 @@ class GoodTests(object):
                     testsRunCount += 1
             else:
                 # Mark all tests failed, we could not complete class setup
-                testsRunCount += len(testFunctionNames)
+                testsRunCount += len(testFunctions)
 
             try:
                 # Module-specific tear-down
