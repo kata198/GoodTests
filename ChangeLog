@@ -6,6 +6,8 @@
 
 - Some updates to docstrings and comments
 
+- Fix where old style test names ( just method begins with "test", not necessarily "test_" ) would be used
+    in some cases we should be limiting to test_
 
 2.2.0 - Nov 19 2017
 
