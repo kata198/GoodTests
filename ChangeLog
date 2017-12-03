@@ -1,13 +1,41 @@
 2.3.0 - ??? ?? ????
 
-- Change class and method search to use the 'inspect' module to remove slow calls to dir() function. This is most noticable on python2, which I benched at a 40% speed improvement on AdvancedHTMLParser test suite.
+- Bring back the "--pdb" switch. If an assertion fails in your test, this will drop you into the pdb debugger at the frame of failure ( i.e. you'll be brought to the line which had the failed assertion for inspection/debugging)
+
+- Change class and method search to use the 'inspect' module to replace all slow calls to dir() function. The performance improvement is most noticable on python2, which I benched at a 40% speed improvement on AdvancedHTMLParser test suite.
+
+- Major Performance increase in numRunners > 1 ( Default on multiprocessor system, and any -n option greater than -n1 )
+
+	* I've profiled and found that a large portion of the time for maxRunners>1 scenarios is in multiprocessing.Process.poll, so revamped the way that is done:
+
+	* Create a multiprocessing.Array('b', maxRunners) which we call "doneRunning." This is used by the processes when they complete running their test set to mark that it is ready to be joined/cleaned up
+
+	* Slightly increase the time in the primary event loop of the parent to prevent interrupting the children as often
+
+	* Pull out the collection of data from child->parent (which includes the results of its test run) to not run every loop iteration (which used to be set to 1000 times per second). More on this below.
+
+	* 49 out of every 50 (49/50) iterations of the event loop, instead of polling every child process to see if they have stopped running (expensive), we instead query the self.doneRunning array and join on any of the children which have marked themselves done. Since this does not involve polling, this leads to a very measurable increase in performance ( the AdvancedHTMLParser test suite runs about 30% faster with this change).
+
+	* 1 out of every 50 (1/50) iterations of the event loop we take the "long" path. This will run through each child and specifically poll their status. This is necessary to handle/clean-up processes that crash because of, for example, running out of memory on the system or a segmentation fault or any other out-of-band error. Also, in this "long" path we will collect the child->parent data currently available
+
+	* Remove the lock (self.communicationLock) from child->parent data transfer. It is not needed.
+
+- Besides taking the child->parent data collection out of the majority of event loop iterations (minus the 1/50 as mentioned before), we now collect that data (which is used for the aggregate report) after completion of all tests.
+
+- Change the _getAvailableData function to return ALL child->parent data waiting ot be picked up, instead of only returning one (the underlying method, _readChildObj still must be called for each item, however, due to the interface provided by multiprocessing.Pipe. I've looked into Queue and other methods without success at increasing performance. This DOES perform a poll though, and may be a useful refactor later to remove this poll.
+
+- Several other micro-optimizations
 
 - Some micro-optimizations involving using local scope within loops and comprehensions
 
-- Some updates to docstrings and comments
+- Some updates to docstrings and comments, and some better variable names
 
-- Fix where old style test names ( just method begins with "test", not necessarily "test_" ) would be used
-    in some cases we should be limiting to test_
+- Fix where under certain conditions old style test names ( just method begins with "test", not necessarily "test_" ) would be used
+in some cases we should be limiting to test_. This was not intended behaviour, but probably didn't cause any issues unless you had a non-test method named something like "testifyObject" in a "New" style test (class name BEGINS with "Test")
+
+- Fixup spacing in "--help" and document that "--version" is an option
+
+- Regenerate the README.rst from README.md using mdToRst (https://github.com/kata198/mdToRst) -- it had gotten out of date.
 
 2.2.0 - Nov 19 2017
 
