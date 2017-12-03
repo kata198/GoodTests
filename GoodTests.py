@@ -247,6 +247,16 @@ class GoodTests(object):
         self._cleanupProcesses()
         return ret
 
+    def _getNumberOfActiveRunningProcesses(self):
+        '''
+            _getNumberOfActiveRunningProcesses - Get the number of active running processes
+
+            @return <int> - Number of active running processes
+        '''
+        runningProcesses = self.runningProcesses
+        return len([x for x in runningProcesses if x[0] is not None])
+
+
     def _getNumberOfTasksRemaining(self):
         '''
            Returns how many tasks are left to run
@@ -265,7 +275,7 @@ class GoodTests(object):
         testQueue = self.testQueue
 
         if len(testQueue) == 0:
-            return self._getNumberOfTasksRemaining()
+            return self._getNumberOfActiveRunningProcesses()
 
         if self.noFork:
             nextTest = testQueue.popleft()
@@ -286,7 +296,7 @@ class GoodTests(object):
 
                     if len(testQueue) == 0:
                         # Nothing left to queue, return running count
-                        return self._getNumberOfTasksRemaining()
+                        return self._getNumberOfActiveRunningProcesses()
 
         return self._getNumberOfTasksRemaining()
 
