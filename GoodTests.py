@@ -99,7 +99,10 @@ class GoodTests(object):
         # List of testNames left to run
         self.testQueue = deque()
         self.extraTimes = extraTimes
-        self.noFork = (maxRunners == 1)
+
+        # self.runDirect - bool, if True we will run right in the current process ( maxRunners==1 ),
+        #                        if False, this will become the parent and children will run tests
+        self.runDirect = (maxRunners == 1)
 
         self.useColour = useColour
 
@@ -277,7 +280,7 @@ class GoodTests(object):
         if len(testQueue) == 0:
             return self._getNumberOfActiveRunningProcesses()
 
-        if self.noFork:
+        if self.runDirect:
             nextTest = testQueue.popleft()
             self.runTest(nextTest, self.specificTestPattern)
         else:
