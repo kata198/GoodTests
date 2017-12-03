@@ -35,19 +35,31 @@ Assertions should use the "assert" keyword in python (example: assert 1 != 2)
 
 See "test\_Magic.py" for an example:
 
-	$ python GoodTests.py --help
+Usage
+-----
+
 	Usage:  GoodTests.py (options) [filesnames or directories]
 
-	Options:
+		Options:
 
-		-n [number]              - Specifies number of simultaneous executions (default: 1)
+		-n [number]              - Specifies number of simultaneous executions 
+									 Default = # of processors (2).
+									You must use "-n 1" if using pdb
+
+		--pdb                    - When an assertion fails, drop to a pdb shell within
+									 the test code at the point of failure  ( forces -n1 )
+
+
 		-m [regexp]              - Run methods matching a specific pattern
 		-q                       - Quiet (only print failures)
 		-t                       - Print extra timing information
+
 		--no-colour              - Strip out colours from output
 		--no-color
 
-		--help                   - Show this screen
+		--version                - Print version and copyright information
+		--help                   - Show this message
+
 
 
 GoodTests can be used with -n to do multiple simultaneous executions (one process per test class)
