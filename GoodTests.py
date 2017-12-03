@@ -24,6 +24,8 @@ import types
 
 import pdb
 
+BdbQuit = pdb.bdb.BdbQuit
+
 from collections import deque
 
 
@@ -37,7 +39,7 @@ try:
 except NameError:
     xrange = range
 
-COLOUR_RE = re.compile('\033\[[\d]+[m]')
+COLOUR_RE = re.compile('\033\[[\d]+([;][\d]+){0,1}[m]')
 
 VERSION_MAJOR = 2
 VERSION_MINOR = 3
@@ -509,6 +511,7 @@ class GoodTests(object):
         self.output('Test results (%d of %d PASS) Took %f total seconds to run.\n\n' %(sum([int(x[1]) for x in testResults.values()]), sum([int(x[2]) for x in testResults.values()]), totalTimeEnd - totalTimeStart ) )
         self.output('Failing Tests:')
 
+
         for filename in testResults.keys():
             failedResults = testResults[filename]
             totalFailed = len(failedResults[0].values())
@@ -523,7 +526,22 @@ class GoodTests(object):
 
 
         self.output('\n\n' + '=' * 50 + '\nSummary:\n')
-        self.output('Test results (%d of %d PASS) Took %f total seconds to run.\n\n' %(sum([int(x[1]) for x in testResults.values()]), sum([int(x[2]) for x in testResults.values()]), totalTimeEnd - totalTimeStart ) )
+
+        totalPassCount = 0
+        totalTestCount = 0
+        totalDebugPassCount = 0
+
+        for testResult in testResults.values():
+            totalPassCount += int(testResult[1])
+            totalTestCount += int(testResult[2])
+            totalDebugPassCount += int(testResult[3])
+
+        if totalDebugPassCount > 0:
+            passedAfterDebugStr = " + ( %d PASSED after interactive debug ) " %(totalDebugPassCount, )
+        else:
+            passedAfterDebugStr = ""
+
+        self.output('Test results (%d of %d PASS)%s Took %f total seconds to run.\n\n' %(totalPassCount, totalTestCount, passedAfterDebugStr, totalTimeEnd - totalTimeStart ) )
 
 
     def runTest(self, testFile, specificTestPattern=None, runnerIdx=None):
@@ -577,6 +595,7 @@ class GoodTests(object):
 
         failedResults = {} # Keyed by testClassName, contains tuple of testFunctionName and traceback status
         passCount = 0
+        debugPassCount = 0
         testsRunCount = 0
 
         for testClassName, TestClass in testClasses.items():
@@ -655,6 +674,11 @@ class GoodTests(object):
                         if testClassName not in failedResults:
                             failedResults[testClassName] = []
                         failedResults[testClassName].append((testFunctionName, message))
+                    elif message:
+                        if testClassName not in failedResults:
+                            failedResults[testClassName] = []
+                        failedResults[testClassName].append((testFunctionName, message))
+                        debugPassCount += 1
                     else:
                         passCount += 1
                     testsRunCount += 1
@@ -688,7 +712,7 @@ class GoodTests(object):
                     failedResults[testClassName] = []
                 failedResults[testClassName].append((functionName, tracebackInfo))
 
-        ret = (failedResults, passCount, testsRunCount)
+        ret = (failedResults, passCount, testsRunCount, debugPassCount)
         self._childObjToParent((testFile, ret))
 
         os.chdir(oldDir)
@@ -710,7 +734,7 @@ class GoodTests(object):
         '''
         return (testFile, str(instantiatedTestClass.__class__.__name__), testFunctionName)
 
-    def runTestMethod(self, instantiatedTestClass, testFile, testFunction):
+    def runTestMethod(self, instantiatedTestClass, testFile, testFunction, runUnderDebugger=False):
         '''
            runTestMethod - Run a specific method in a specific test.
 
@@ -725,12 +749,19 @@ class GoodTests(object):
 
                @param testFunction <method/str> - string of test function name, or the function method itself
 
+               @param runUnderDebugger <bool> default False - If True, will execute this method under the debugger
+
+                            This is called when self.usePdb = True and an Exception is raised during test execution
+
 
            @return tuple<str, str> - Returns a tuple of execution status
 
                first value is 'PASS' or 'FAIL'
                second value is function's traceback or empty string
         '''
+        if runUnderDebugger is False:
+            self.lastTracebackMsg = ''
+
         if isinstance(testFunction, types.MethodType):
             testFunctionName = testFunction.__name__
         else:
@@ -757,7 +788,10 @@ class GoodTests(object):
         try:
 
             # Execute Test
-            testFunction()
+            if not runUnderDebugger:
+                testFunction()
+            else:
+                pdb.runcall(testFunction)
 
 
         except AssertionError as e:
@@ -769,10 +803,18 @@ class GoodTests(object):
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Assertion Error*****\n\033[91m%s\033[0m" % theTuple)
 
             # TODO: Should trap setup / teardown?
-            if self.usePdb:
+            if not runUnderDebugger and self.usePdb:
+                self.lastTracebackMsg = "Was corrected in interactive debugger session.\n\nOriginal Traceback:\n\n" + tracebackInfo
                 return self.runTestMethodDebugFailure(instantiatedTestClass, testFile, testFunction, excInfo)
 
             ret = ('FAIL', tracebackInfo)
+        except BdbQuit as be:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
+            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
+            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Debugger Aborted During Execution*****\n\033[91m%s\033[0m" % theTuple)
+            ret = ('FAIL', tracebackInfo)
+            
         except Exception as e:
             # Exception while running test
             excInfo = sys.exc_info()
@@ -780,15 +822,33 @@ class GoodTests(object):
             tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Execution*****\n\033[91m%s\033[0m" % theTuple)
-            if self.usePdb:
+            if not runUnderDebugger and self.usePdb:
+                self.lastTracebackMsg = "Was corrected in interactive debugger session.\n\nOriginal Traceback:\n\n" + tracebackInfo
                 return self.runTestMethodDebugFailure(instantiatedTestClass, testFile, testFunction, excInfo)
 
             ret = ('FAIL', tracebackInfo)
         else:
             # PASS
+            if runUnderDebugger:
+                passStrOutput = 'PASS \033[97m(debugger)\033[0m'
+                passStrRet = 'PASS (debugger)'
+            else:
+                passStrRet = passStrOutput = 'PASS'
+
             if not self.printFailuresOnly:
-                self.output("\033[93m%s - %s.%s \033[96mPASS\033[0m" % self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName))
-            ret = ('PASS', '')
+                outputStr = "\033[93m%s - %s.%s \033[96m" % self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName)
+                if runUnderDebugger:
+                    outputStr += 'PASS \033[97m(debugger)'
+                else:
+                    outputStr += 'PASS'
+
+                outputStr += "\033[0m"
+                self.output(outputStr)
+
+            if runUnderDebugger:
+                ret = ( 'PASS (debugger)', self.lastTracebackMsg )
+            else:
+                ret = ('PASS', '')
 
         try:
             # Specific method teardown
@@ -832,65 +892,35 @@ class GoodTests(object):
             testFunction = getattr(instantiatedTestClass, testFunctionName)
 
         # TODO: This always says "ASSERTION FAILED", but we could have dropped in for a different kind of error
-        self.output("\nASSERTION FAILED AND PDB ENABLED: DROPPING INTO DEBUGGER ---\n")
-        self.output("  (type 'help' followed by return for assistance with debugger)")
-        self.output(" Quick Ref (commands listed within square-brackets; enter commands without the bracket):\n\t[n]\t\t  - Next Line\n\t[s]\t\t  - Step into current line\n\t[c]\t\t  - Continue Execution\n\t[up/down]\t  - Move up or down in current stack\n\t[print ( X )]\t  - Print the variable 'X' in current context.\n\t[locals()]\t  - Print local variables in this scope\n\t[arbitrary code]\t  -Execute arbitrary code at current level\n")
-        # Use tb_next so this method does not show up in the frame, only the test method.
-        try:
-            # TODO: This DOES drop the debugger into frame, but hitting "next" etc does not continue execution
-            pdb.post_mortem(orig_exc_traceback.tb_next)
+        self.output("\033[93;1m============================================================\033[0m\n")
+        self.output("\n\033[94mASSERTION FAILED AND PDB ENABLED: DROPPING INTO DEBUGGER ---\033[0m\n")
 
-        except AssertionError as e:
-        # Test failure
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
-            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) +  (tracebackInfo,)
-            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Debugger Aborted on Assertion Error*****\n\033[91m%s\033[0m" % theTuple)
+        self.output("\033[94mGoodTests ==> Loading at failing assertion\n" \
+            "\tEnter 'locals()' (without quotes) to access a dict of local variables.\n" \
+            "\tEnter 'print ( someVar )' (without quotes) to print the value of a variable.\n" \
+            "\tEnter 'n' or 'c' (without quotes) to restart execution at beginning of test method." \
+            "\033[0m\n\n"
+        )
+        self.output("\033[93;1m============================================================\033[0m\n")
 
-            # TODO: Change this to re-enter the test function with a pdb prompt, so if folks manually
-            #          resolve the error and hit "continue", it will report something along the lines of
-            #          "First run of test_myMethod Failed, but was corrected in the debugger and PASSED."
+        pdb.post_mortem(orig_exc_traceback.tb_next)
 
-            ret = ('FAIL', tracebackInfo)
-        except pdb.bdb.BdbQuit as be:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
-            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
-            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Debugger Aborted During Execution*****\n\033[91m%s\033[0m" % theTuple)
-            ret = ('FAIL', tracebackInfo)
-            
-        except Exception as e:
-            # Exception while running test
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
-            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
-            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Debugger Aborted on General Exception During Execution*****\n\033[91m%s\033[0m" % theTuple)
-            ret = ('FAIL', tracebackInfo)
-        else:
-            # PASS
-            if not self.printFailuresOnly:
-                self.output("\033[93m%s - %s.%s \033[96mFAIL (debugger) \033[0m" % self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName))
-            ret = ('FAIL', origTracebackInfo)
+        self.output("\033[93;1m============================================================\033[0m\n")
+        self.output("\n\033[94mGoodTests ==> Restarting the method '%s' under debugger control.\033[0m\n" %(testFunction.__func__.__qualname__, ))
 
-        try:
-            # Specific method teardown
+        self.output("\033[94m  (type 'help' followed by return for assistance with debugger)\033[0m\n")
+        self.output("\033[94m Quick Ref (commands listed within square-brackets; enter commands without the bracket):\n\n" \
+            "\t[n]\t\t  - Execute current line and proceed to next line\n" \
+            "\t[s]\t\t  - Step into current line\n" \
+            "\t[c]\t\t  - Continue Execution\n" \
+            "\t[up/down]\t  - Move up or down in current stack\n" \
+            "\t[print ( X )]\t  - Print the variable 'X' in current context.\n" \
+            "\t[locals()]\t  - Print local variables in this scope\n" \
+            "\t[arbitrary code]  - Execute arbitrary code at current level\033[0m\n"
+        )
+        self.output("\033[93;1m============================================================\033[0m\n")
 
-            testTeardownFuncName = re.sub('^test_', 'teardown_', testFunctionName)
-            if hasattr(instantiatedTestClass, testTeardownFuncName):
-                getattr(instantiatedTestClass, testTeardownFuncName)()
-
-            # General method teardown
-            if hasattr(instantiatedTestClass, 'teardown_method'):
-                getattr(instantiatedTestClass, 'teardown_method')(getattr(instantiatedTestClass, testFunctionName))
-        except Exception as e:
-            # Exception while running test
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
-            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
-            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Method Teardown*****\n\033[91m%s\033[0m" % theTuple)
-            return ('FAIL', tracebackInfo)
-
-        return ret
+        return self.runTestMethod(instantiatedTestClass, testFile, testFunction, runUnderDebugger=True)
 
 
 
