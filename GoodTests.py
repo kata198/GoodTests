@@ -221,9 +221,9 @@ class GoodTests(object):
         runningProcesses = self.runningProcesses
 
         for i in xrange(len(runningProcesses)):
-            runningProcess = runningProcesses[i]
-            if runningProcess[0] and not runningProcess[0].is_alive():
-                runningProcess[0].join()
+            runningProcessObj = runningProcesses[i][0]
+            if runningProcessObj and not runningProcessObj.is_alive():
+                runningProcessObj.join()
                 runningProcesses[i] = [None, None]
 
     def _getAvailableData(self):
