@@ -762,36 +762,115 @@ class GoodTests(object):
 
         except AssertionError as e:
             # Test failure
-            exc_type, exc_value, exc_traceback = sys.exc_info()
+            excInfo = sys.exc_info()
+            exc_type, exc_value, exc_traceback = excInfo
             tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) +  (tracebackInfo,)
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Assertion Error*****\n\033[91m%s\033[0m" % theTuple)
 
-            # TODO: Change this to re-enter the test function with a pdb prompt, so if folks manually
-            #          resolve the error and hit "continue", it will report something along the lines of
-            #          "First run of test_myMethod Failed, but was corrected in the debugger and PASSED."
+            # TODO: Should trap setup / teardown?
             if self.usePdb:
-                # If we have "pdb" mode enabled, print a quick help reference and drop to debug shell
-                self.output("\nASSERTION FAILED AND PDB ENABLED: DROPPING INTO DEBUGGER ---\n")
-                self.output("  (type 'help' followed by return for assistance with debugger)")
-                self.output(" Quick Ref (commands listed within square-brackets; enter commands without the bracket):\n\t[n]\t\t  - Next Line\n\t[s]\t\t  - Step into current line\n\t[c]\t\t  - Continue Execution\n\t[up/down]\t  - Move up or down in current stack\n\t[print ( X )]\t  - Print the variable 'X' in current context.\n\t[locals()]\t  - Print local variables in this scope\n\t[arbitrary code]\t  -Execute arbitrary code at current level\n")
-                # Use tb_next so this method does not show up in the frame, only the test method.
-                pdb.post_mortem(exc_traceback.tb_next)
-
+                return self.runTestMethodDebugFailure(instantiatedTestClass, testFile, testFunction, excInfo)
 
             ret = ('FAIL', tracebackInfo)
         except Exception as e:
             # Exception while running test
-            exc_type, exc_value, exc_traceback = sys.exc_info()
+            excInfo = sys.exc_info()
+            exc_type, exc_value, exc_traceback = excInfo
             tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Execution*****\n\033[91m%s\033[0m" % theTuple)
+            if self.usePdb:
+                return self.runTestMethodDebugFailure(instantiatedTestClass, testFile, testFunction, excInfo)
+
             ret = ('FAIL', tracebackInfo)
         else:
             # PASS
             if not self.printFailuresOnly:
                 self.output("\033[93m%s - %s.%s \033[96mPASS\033[0m" % self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName))
             ret = ('PASS', '')
+
+        try:
+            # Specific method teardown
+
+            testTeardownFuncName = re.sub('^test_', 'teardown_', testFunctionName)
+            if hasattr(instantiatedTestClass, testTeardownFuncName):
+                getattr(instantiatedTestClass, testTeardownFuncName)()
+
+            # General method teardown
+            if hasattr(instantiatedTestClass, 'teardown_method'):
+                getattr(instantiatedTestClass, 'teardown_method')(getattr(instantiatedTestClass, testFunctionName))
+        except Exception as e:
+            # Exception while running test
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
+            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
+            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****General Exception During Method Teardown*****\n\033[91m%s\033[0m" % theTuple)
+            return ('FAIL', tracebackInfo)
+
+        return ret
+
+
+    def runTestMethodDebugFailure(self, instantiatedTestClass, testFile, testFunction, excInfo):
+        '''
+            runTestMethodDebugFailure - Resume a test method at a failure point.
+
+                @see runTestMethod
+
+                Additional:
+
+                    @param excInfo - The sys.exc_info() tuple at time of exception
+        '''
+
+        (orig_exc_type, orig_exc_value, orig_exc_traceback) = excInfo
+        origTracebackInfo = ''.join(traceback.format_exception(orig_exc_type, orig_exc_value, orig_exc_traceback.tb_next))
+
+        if isinstance(testFunction, types.MethodType):
+            testFunctionName = testFunction.__name__
+        else:
+            testFunctionName = testFunction
+            testFunction = getattr(instantiatedTestClass, testFunctionName)
+
+        # TODO: This always says "ASSERTION FAILED", but we could have dropped in for a different kind of error
+        self.output("\nASSERTION FAILED AND PDB ENABLED: DROPPING INTO DEBUGGER ---\n")
+        self.output("  (type 'help' followed by return for assistance with debugger)")
+        self.output(" Quick Ref (commands listed within square-brackets; enter commands without the bracket):\n\t[n]\t\t  - Next Line\n\t[s]\t\t  - Step into current line\n\t[c]\t\t  - Continue Execution\n\t[up/down]\t  - Move up or down in current stack\n\t[print ( X )]\t  - Print the variable 'X' in current context.\n\t[locals()]\t  - Print local variables in this scope\n\t[arbitrary code]\t  -Execute arbitrary code at current level\n")
+        # Use tb_next so this method does not show up in the frame, only the test method.
+        try:
+            # TODO: This DOES drop the debugger into frame, but hitting "next" etc does not continue execution
+            pdb.post_mortem(orig_exc_traceback.tb_next)
+
+        except AssertionError as e:
+        # Test failure
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
+            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) +  (tracebackInfo,)
+            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Debugger Aborted on Assertion Error*****\n\033[91m%s\033[0m" % theTuple)
+
+            # TODO: Change this to re-enter the test function with a pdb prompt, so if folks manually
+            #          resolve the error and hit "continue", it will report something along the lines of
+            #          "First run of test_myMethod Failed, but was corrected in the debugger and PASSED."
+
+            ret = ('FAIL', tracebackInfo)
+        except pdb.bdb.BdbQuit as be:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
+            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
+            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Debugger Aborted During Execution*****\n\033[91m%s\033[0m" % theTuple)
+            ret = ('FAIL', tracebackInfo)
+            
+        except Exception as e:
+            # Exception while running test
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback.tb_next))
+            theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
+            self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Debugger Aborted on General Exception During Execution*****\n\033[91m%s\033[0m" % theTuple)
+            ret = ('FAIL', tracebackInfo)
+        else:
+            # PASS
+            if not self.printFailuresOnly:
+                self.output("\033[93m%s - %s.%s \033[96mFAIL (debugger) \033[0m" % self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName))
+            ret = ('FAIL', origTracebackInfo)
 
         try:
             # Specific method teardown
