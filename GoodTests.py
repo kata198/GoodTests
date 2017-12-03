@@ -831,6 +831,7 @@ def printUsage():
     --no-colour              - Strip out colours from output
     --no-color
 
+    --version                - Print version and copyright information
     --help                   - Show this message
 
 
