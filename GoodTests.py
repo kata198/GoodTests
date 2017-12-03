@@ -1,8 +1,14 @@
 #!/usr/bin/env python
-#Copyright 2011, 2015, 2016, 2017 (c) Timothy Savannah under LGPLv2.1, All Rights Reserved.
-#  See LICENSE for more information
+'''
+    Copyright 2011, 2015, 2016, 2017 (c) Timothy Savannah under LGPLv2.1, All Rights Reserved.
+  
+        If a LICENSE file was not included in this distribution, the license can be found
 
+          at https://github.com/kata198/GoodTests/blob/master/LICENSE
+
+'''
 # vim: set ts=4 sw=4 st=4 expandtab
+
 
 import glob
 import multiprocessing
@@ -38,17 +44,49 @@ VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
 class GoodTests(object):
     '''
-       Runs tests well.
+       GoodTests - Runs tests well.
     '''
 
     def __init__(self, maxRunners=DEFAULT_MAX_RUNNERS, printFailuresOnly=False, extraTimes=False, useColour=True, specificTestPattern=None):
         '''
-            maxRunners is how many tests to execute simultaniously.
+            __init__ - Create a GoodTests object.
+
+                @param maxRunner <int> Default DEFAULT_MAX_RUNNERS (number of cpus on system) - 
+
+                    Set this to the number of concurrent processes you want to run. For tests without any blocking whatsoever,
+                       you may find it faster to leave maxRunners=1, as there is a minor overhead to using >1.
+
+                       Also, required to be =1 when doPdb=True (if not, a warning will be printed and it will be forced to 1)
+
+                @param printFailuresOnly <bool> Default False, if True will only print the Failures and the summary.
+
+                    If True, then every method which passes will print a line
+
+                @param extraTimes <bool> default False. If True, the time each test method, setup, and teardown function takes will be printed.
+
+                @param useColour <bool> default True. If True, will use colour output (works on POSIX/Linux/Unix/Mac terminals). False will not include colours.
+
+                @param specificTestPattern <str/None> default None - If a string is provided, this pattern will be compiled and mathced against functions. Only test functions which match this pattern will be run.
+
+                    For example, specificTestPattern="smoke" will only run test methods which contain 'smoke' in the name.
+
         '''
+
+        # communcationLock - This is a lock used for transferring data between the parent process
+        #                        and children. 
+        #         Before writing an object to the parent, this lock is obtained.
+        #         When the parent notices an object waiting in the queue, it will read it then
+        #           release this lock.
+        #         This ensures that one item is transferred at a time to the parent
+        #      
         self.communicationLock = multiprocessing.Lock()
+
+        # communicationPipe - A pipe used for sending data from the child back to the parent.
+        #                       This is how the child communicates which tests have been ran and the result
         self.communicationPipe = multiprocessing.Pipe(False)
 
-        # List of running processes, number of elements is number of runners. Contents is tuple of (multiprocessing.Process, testName)
+        # runningProcesses - List of running processes, number of elements is number of runners.
+        #   Contents is tuple of (multiprocessing.Process, testName)
         self.runningProcesses = [ [None, None] for x in xrange(maxRunners) ]
 
         # If only to show failures
@@ -76,7 +114,7 @@ class GoodTests(object):
         '''
             output - Called to output text to stderr, optionally stripping colour if disabled
 
-            @param text <str> - Text to send out
+                @param text <str> - Text to send out
         '''
         if self.useColour is False:
             text = COLOUR_RE.sub('', text)
@@ -102,7 +140,9 @@ class GoodTests(object):
 
     def _childObjToParent(self, obj):
         '''
-           Writes an object to the communication pipe (child->parent).
+            _childObjToParent - 
+
+               Writes an object to the communication pipe (child->parent).
 
            This gains the lock, but does not release. (Parent process must read for release)
         '''
@@ -114,7 +154,9 @@ class GoodTests(object):
 
     def _readChildObj(self):
         '''
-           Reads object from a child
+           _readChildObj - Checks the queue and if there is an item waiting, reads the object and releases
+
+                                the communication lock
         '''
         if not self.communicationPipe[0].poll():
             return None
@@ -124,7 +166,7 @@ class GoodTests(object):
 
     def _cleanupProcesses(self):
         '''
-           Cleanup any "finished" processes
+           _cleanupProcesses - Cleanup any "finished" processes
         '''
         for i in xrange(len(self.runningProcesses)):
             runningProcess = self.runningProcesses[i]
@@ -134,7 +176,9 @@ class GoodTests(object):
 
     def _getAvailableData(self):
         '''
-           Gets any available data from child processes. cleans up processes.
+           _getAvailableData - Gets any available data from child processes. cleans up processes.
+
+            @return <list> - A list of objects received
         '''
         ret = []
 
@@ -151,20 +195,22 @@ class GoodTests(object):
         self._cleanupProcesses()
         return ret
 
-    def _tasksLeft(self):
+    def _getNumberOfTasksRemaining(self):
         '''
            Returns how many tasks are left to run
+
+           @return <int> - number of tasks left to process
         '''
         return len(self.testQueue) + len([x for x in self.runningProcesses if x[0] is not None])
 
     def _runNextTasks(self):
         '''
-           Actually puts tasks into the queue.
+           _runNextTasks - Actually puts tasks into the queue.
 
-           Returns number of tasks left to process
+           @return <int> - number of tasks left to process
         '''
         if len(self.testQueue) == 0:
-            return self._tasksLeft()
+            return self._getNumberOfTasksRemaining()
 
         if self.noFork:
             nextTest = self.testQueue.popleft()
@@ -181,9 +227,9 @@ class GoodTests(object):
 
                     if len(self.testQueue) == 0:
                         # Nothing left to queue, return running count
-                        return self._tasksLeft()
+                        return self._getNumberOfTasksRemaining()
 
-        return self._tasksLeft()
+        return self._getNumberOfTasksRemaining()
 
 
     @staticmethod
@@ -236,7 +282,11 @@ class GoodTests(object):
 
     def runTests(self, directories, files):
         '''
-           Run all tests in directories
+           runTests - Run all tests in directories
+
+            @param directories list<str> - A list of directories to process
+
+            @param files<str> - A list of filenames to process
         '''
         directories = self._cleanDirectoryNames(directories)
 
@@ -288,7 +338,7 @@ class GoodTests(object):
 
     def runTest(self, testFile, specificTestPattern=None):
         '''
-           Run a specific test file (where testFile is an importable python name [i.e. test_Something.py]).
+           runTest - Run a specific test file (where testFile is an importable python name [i.e. test_Something.py]).
            All classes beginning with 'Test' are going to be tested.
 
            setup_(testClassName) or setup_class and teardown_(testClassName) or teardown_class are run at approperate times
@@ -296,6 +346,12 @@ class GoodTests(object):
            Returns tuple (failedResults<testClassName>(testFunctionName, message), testsPassedCount, totalTestsRun)
 
            Passes to parent (testFile, return value)
+
+                @param testFile <str> - The filename to run
+
+                @param specificTestPattern <str/None> default None - If provided, will only run methods matching
+
+                        this pattern.
         '''
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -441,31 +497,36 @@ class GoodTests(object):
     @staticmethod
     def _getTestLineStart(instantiatedTestClass, testFile, testFunctionName):
         '''
-           Gets the beginning of every log statement.
+           _getTestLineStart - Gets the beginning of every log statement.
 
-           instantiatedTestClass - module that has been initted
-           testFile - string of python file
-           testFunctionName - string of test function name
+                @param instantiatedTestClass - module that has been initted
+
+                @paramtestFile - string of python file
+
+                @param testFunctionName - string of test function name
         '''
         return (testFile, str(instantiatedTestClass.__class__.__name__), testFunctionName)
 
     def runTestMethod(self, instantiatedTestClass, testFile, testFunctionName):
         '''
-           Run a specific method in a specific test.
+           runTestMethod - Run a specific method in a specific test.
 
            setup_(methodName) will be run for paticular methodName, as well as setup_method (old school).
 
            teardown_(methodName) will be run after method, or teardown_method (old school).
 
-           instantiatedTestClass - module that has been initted
-           testFile - string name of origin file
-           testFunctionName - string of test function name
+           
+               @param instantiatedTestClass - module that has been initted
+
+               @param testFile - string name of origin file
+
+               @param testFunctionName - string of test function name
 
 
-           Returns a tuple of execution status
+           @return tuple<str, str> - Returns a tuple of execution status
 
-           first value is 'PASS' or 'FAIL'
-           second value is function's traceback or empty string
+               first value is 'PASS' or 'FAIL'
+               second value is function's traceback or empty string
         '''
         try:
             # General method setup
