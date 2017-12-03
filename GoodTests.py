@@ -40,12 +40,12 @@ except NameError:
 COLOUR_RE = re.compile('\033\[[\d]+[m]')
 
 VERSION_MAJOR = 2
-VERSION_MINOR = 2
+VERSION_MINOR = 3
 VERSION_PATCH = 0
 
-__version__ = "2.2.0"
+__version__ = "2.3.0rc1"
 
-__version_tuple__ = (2, 2, 0)
+__version_tuple__ = (2, 3, 0)
 
 VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
