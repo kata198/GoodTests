@@ -814,24 +814,24 @@ class GoodTests(object):
 def printUsage():
         sys.stderr.write("""Usage:  GoodTests.py (options) [filesnames or directories]
 
-         Options:
+  Options:
 
-           -n [number]              - Specifies number of simultaneous executions 
-                                        Default = # of processors (%d).
-                                       You must use "-n 1" if using pdb
+    -n [number]              - Specifies number of simultaneous executions 
+                                 Default = # of processors (%d).
+                                You must use "-n 1" if using pdb
 
-           --pdb                    - When an assertion fails, drop to a pdb shell within
-                                        the test code at the point of failure  ( forces -n1 )
+    --pdb                    - When an assertion fails, drop to a pdb shell within
+                                 the test code at the point of failure  ( forces -n1 )
 
 
-           -m [regexp]              - Run methods matching a specific pattern
-           -q                       - Quiet (only print failures)
-           -t                       - Print extra timing information
+    -m [regexp]              - Run methods matching a specific pattern
+    -q                       - Quiet (only print failures)
+    -t                       - Print extra timing information
 
-           --no-colour              - Strip out colours from output
-           --no-color
+    --no-colour              - Strip out colours from output
+    --no-color
 
-           --help                   - Show this message
+    --help                   - Show this message
 
 
 """ %(DEFAULT_MAX_RUNNERS,))
