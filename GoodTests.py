@@ -268,7 +268,7 @@ class GoodTests(object):
 
     def _runNextTasks(self):
         '''
-           _runNextTasks - Actually puts tasks into the queue.
+           _runNextTasks - Actually puts tasks into the queue, filling any empty slots.
 
            @return <int> - number of tasks left to process
         '''
@@ -285,16 +285,21 @@ class GoodTests(object):
             runTest = self.runTest
             specificTestPattern = self.specificTestPattern
 
+
+            testQueueLen = len(testQueue)
+
             for i in xrange(len(runningProcesses)):
                 if runningProcesses[i][0] is None:
                     # Nothing running in this slot, queue something
                     nextTest = testQueue.popleft()
+                    testQueueLen -= 1
+
                     childProcess = multiprocessing.Process(target=runTest, args=(nextTest, specificTestPattern))
                     childProcess.start()
                     runningProcesses[i][0] = childProcess
                     runningProcesses[i][1] = nextTest
 
-                    if len(testQueue) == 0:
+                    if testQueueLen == 0:
                         # Nothing left to queue, return running count
                         return self._getNumberOfActiveRunningProcesses()
 
