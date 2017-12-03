@@ -26,6 +26,10 @@ import pdb
 
 from collections import deque
 
+
+__all__ = ( 'GoodTests', 'printUsage', 'main', )
+
+
 DEFAULT_MAX_RUNNERS = multiprocessing.cpu_count()
 
 try:
@@ -812,7 +816,10 @@ class GoodTests(object):
 
 
 def printUsage():
-        sys.stderr.write("""Usage:  GoodTests.py (options) [filesnames or directories]
+    '''
+        printUsage - Print  a "--help" listing of all supported arguments
+    '''
+    sys.stderr.write("""Usage:  GoodTests.py (options) [filesnames or directories]
 
   Options:
 
@@ -840,6 +847,18 @@ def printUsage():
 
 
 def main(args):
+    '''
+        main - Begin execution of GoodTests.py with given list of arguments.
+
+            This is called when you run "GoodTests.py [someDir]"
+
+          @param args list<str> - A list of arguments ( sys.argv[1:] ) 
+
+          @return <int> - The exitcode for this execution (for use with sys.exit)
+
+            # TODO: We currently exit with code "0" if tests fail. Should this be changed to "1"?
+
+    '''
 
     global isTerminating
     isTerminating = False
@@ -882,10 +901,10 @@ def main(args):
 
         if arg in helpArgs:
             printUsage()
-            sys.exit(0)
+            return 0
         elif arg in versionArgs:
             sys.stdout.write('GoodTests.py version %s by Timothy Savannah (c) 2011 - 2017 LGPL version 2.1\n' %(VERSION,))
-            sys.exit(0)
+            return 0
         elif arg.startswith('-n'):
             if arg[2:].strip().isdigit():
                 maxRunners = int(arg[2:].strip())
@@ -893,7 +912,7 @@ def main(args):
             else:
                 if i+1 == numArgs or args[i+1].isdigit() is False:
                     sys.stderr.write('-n requires a numeric argument\n')
-                    sys.exit(1)
+                    return 1
                 maxRunners = int(args[i+1])
                 i += 2
         elif arg == '-q':
@@ -903,7 +922,7 @@ def main(args):
             if arg == '-m':
                 if i+1 == numArgs:
                     sys.stderr.write('-m needs a value\n')
-                    sys.exit(1)
+                    return 1
                 specificTestPattern = args[i+1]
                 i += 2
             else:
@@ -930,7 +949,7 @@ def main(args):
         tester = GoodTests(maxRunners=maxRunners, printFailuresOnly=printFailuresOnly, extraTimes=extraTimes, useColour=useColour, specificTestPattern=specificTestPattern, usePdb=usePdb)
     except ValueError as e:
         sys.stderr.write(str(e) + '\n')
-        sys.exit(1)
+        return 1
 
     signal.signal(signal.SIGTERM, handle_sigTerm)
     signal.signal(signal.SIGINT, handle_sigTerm)
@@ -946,7 +965,7 @@ def main(args):
             if not os.path.exists(filename):
                 sys.stderr.write("Invalid filename or directory. '%s' does not exist.\n\n" %(filename,))
                 printUsage()
-                sys.exit(1)
+                return 1
 
             if os.path.isdir(filename):
                 directories.append(filename)
@@ -959,8 +978,9 @@ def main(args):
     except KeyboardInterrupt:
         handle_sigTerm(None, None)
 
+    return 0
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
-
+    exitcode = main(sys.argv[1:])
+    sys.exit(exitcode)
 # vim: set ts=4 sw=4 st=4 expandtab
