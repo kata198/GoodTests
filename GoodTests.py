@@ -382,7 +382,7 @@ class GoodTests(object):
         numTasksRemaining = 1
         while numTasksRemaining > 0:
             numTasksRemaining = self._runNextTasks()
-            time.sleep(.0001)
+            time.sleep(.001)
             data = self._getAvailableData()
             for testName, dataObj in data:
                 testResults[testName] = dataObj
