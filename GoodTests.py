@@ -43,6 +43,11 @@ __version_tuple__ = (2, 2, 0)
 
 VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
+# CHILD_CLEANUP_DELAY - The number of seconds we sleep before attempting
+#            to cleanup done/dead children
+CHILD_CLEANUP_DELAY = .002
+
+
 class GoodTests(object):
     '''
        GoodTests - Runs tests well.
@@ -72,16 +77,6 @@ class GoodTests(object):
                     For example, specificTestPattern="smoke" will only run test methods which contain 'smoke' in the name.
 
         '''
-
-        # communcationLock - This is a lock used for transferring data between the parent process
-        #                        and children. 
-        #         Before writing an object to the parent, this lock is obtained.
-        #         When the parent notices an object waiting in the queue, it will read it then
-        #           release this lock.
-        #         This ensures that one item is transferred at a time to the parent
-        #      
-        self.communicationLock = multiprocessing.Lock()
-
         # communicationPipe - A pipe used for sending data from the child back to the parent.
         #                       This is how the child communicates which tests have been ran and the result
         self.communicationPipe = multiprocessing.Pipe(False)
@@ -89,6 +84,15 @@ class GoodTests(object):
         # runningProcesses - List of running processes, number of elements is number of runners.
         #   Contents is tuple of (multiprocessing.Process, testName)
         self.runningProcesses = [ [None, None] for x in xrange(maxRunners) ]
+
+        # doneRunning - Since there is a large cost to running through and polling all children for
+        #                  .is_alive, we rely on the child to self-report when it is done via setting
+        #                   their index to "1" in this array.
+        #
+        #       49/50 checks we only use this self-reporting and join that process.
+        #        1/50 we fallback to the "full" check wherein each child is polled, to cover issues
+        #        like running out of memory and a subprocess crashing.
+        self.doneRunning = multiprocessing.Array('b', maxRunners)
 
         # If only to show failures
         self.printFailuresOnly = printFailuresOnly
@@ -112,6 +116,9 @@ class GoodTests(object):
                 re.compile(specificTestPattern)
             except:
                 raise ValueError('Cannot compile pattern: ' + specificTestPattern)
+
+        # thisRunnerIdx - Set after starting a child to the runnerIdx this is
+        self.thisRunnerIdx = None
 
     @staticmethod
     def _getTestClasses(module):
@@ -197,13 +204,14 @@ class GoodTests(object):
 
                Writes an object to the communication pipe (child->parent).
 
-           This gains the lock, but does not release. (Parent process must read for release)
+                 This is called when a child completes its test set, and passes the results back
+                   up to the parent for the final aggregation of results.
         '''
-        self.communicationLock.acquire()
         try:
             self.communicationPipe[1].send(obj)
         except:
             self.output('>>FAILED TO COMMUNICATE WITH PARENT PROCESS!')
+
 
     def _readChildObj(self):
         '''
@@ -213,21 +221,79 @@ class GoodTests(object):
         '''
         if not self.communicationPipe[0].poll():
             return None
+        
         obj = self.communicationPipe[0].recv()
-        self.communicationLock.release()
+
         return obj
 
-    def _cleanupProcesses(self):
+
+    def _markThisRunnerDone(self):
         '''
-           _cleanupProcesses - Cleanup any "finished" processes
+            _markThisRunnerDone - Self-report that we have completed our set to alert the parent
+
+                    that we are ready to be joined and our slot given to a new worker
         '''
+        runnerIdx = self.thisRunnerIdx
+
+        # If we are running with parent->child
+        if runnerIdx != None:
+            self.doneRunning[runnerIdx] = 1
+
+    def _cleanupChildrenDone(self):
+        '''
+           _cleanupChildrenDone - Cleanup any "finished" child processes.
+
+              This is the "fast-path" function, and relies on the self-reporting of completion
+                of the child processes (@see self.doneRunning).
+
+              This should be called the majority of the time, but occasionally call self._cleanupChildrenLong
+                which will poll every child in the self.runningProcesses array, catching the case for like segfault or OOM, etc.
+
+
+              Will join the completed child, 
+                and mark its entry in self.runningProcesses as [None, None],
+                and reset the self.doneRunning[runnerIdx] to 0
+        '''
+
+        runningProcesses = self.runningProcesses
+        doneRunning = list(self.doneRunning)
+
+        for runnerIdx in range(len(doneRunning)):
+
+            if doneRunning[runnerIdx] == 1:
+                runningProcessObj = runningProcesses[runnerIdx][0]
+                runningProcessObj.join()
+
+                self.doneRunning[runnerIdx] = 0
+
+                runningProcesses[runnerIdx] = [None, None]
+
+
+
+    def _cleanupChildrenLong(self):
+        '''
+            _cleanupChildrenLong - Iterate through every entry in the self.runningProcesses list of children,
+               
+                                        and poll them to see if they have stopped running.
+
+                There is a significant overhead to polling child processes, so this should only be called
+
+                   "once in a while", whilst #_cleanupChildrenDone should be the primary "cleanup" call done.
+
+              Will join the completed child, 
+                and mark its entry in self.runningProcesses as [None, None],
+                and reset the self.doneRunning[runnerIdx] to 0
+        '''
+
         runningProcesses = self.runningProcesses
 
-        for i in xrange(len(runningProcesses)):
-            runningProcessObj = runningProcesses[i][0]
+        for runnerIdx in xrange(len(runningProcesses)):
+            runningProcessObj = runningProcesses[runnerIdx][0]
             if runningProcessObj and not runningProcessObj.is_alive():
                 runningProcessObj.join()
-                runningProcesses[i] = [None, None]
+                self.doneRunning[runnerIdx] = 0
+                runningProcesses[runnerIdx] = [None, None]
+
 
     def _getAvailableData(self):
         '''
@@ -237,17 +303,26 @@ class GoodTests(object):
         '''
         ret = []
 
+        # Read all available data on the pipe
+        while True:
+            nextItem = self._readChildObj()
+            if nextItem is None:
+                break
+            ret.append(nextItem)
+
         # Give a little time in between each available thread
 #        for i in xrange(len(self.runningProcesses)):
 #            obj = self._readChildObj()
 #            if obj:
 #                ret.append(obj)
 #            time.sleep(.0004)
-        obj = self._readChildObj()
-        if obj:
-            ret.append(obj)
 
-        self._cleanupProcesses()
+#        # Old one-at-a-time read
+#        obj = self._readChildObj()
+#        if obj:
+#            ret.append(obj)
+
+        #self._cleanupProcesses()
         return ret
 
     def _getNumberOfActiveRunningProcesses(self):
@@ -291,16 +366,16 @@ class GoodTests(object):
 
             testQueueLen = len(testQueue)
 
-            for i in xrange(len(runningProcesses)):
-                if runningProcesses[i][0] is None:
+            for runnerIdx in xrange(len(runningProcesses)):
+                if runningProcesses[runnerIdx][0] is None:
                     # Nothing running in this slot, queue something
                     nextTest = testQueue.popleft()
                     testQueueLen -= 1
 
-                    childProcess = multiprocessing.Process(target=runTest, args=(nextTest, specificTestPattern))
+                    childProcess = multiprocessing.Process(target=runTest, args=(nextTest, specificTestPattern, runnerIdx))
                     childProcess.start()
-                    runningProcesses[i][0] = childProcess
-                    runningProcesses[i][1] = nextTest
+                    runningProcesses[runnerIdx][0] = childProcess
+                    runningProcesses[runnerIdx][1] = nextTest
 
                     if testQueueLen == 0:
                         # Nothing left to queue, return running count
@@ -365,6 +440,8 @@ class GoodTests(object):
 
             @param files<str> - A list of filenames to process
         '''
+        childCleanupDelay = CHILD_CLEANUP_DELAY
+
         directories = self._cleanDirectoryNames(directories)
 
         for directory in directories:
@@ -380,16 +457,39 @@ class GoodTests(object):
         totalTimeStart = time.time()
 
         numTasksRemaining = 1
+
+        # i - a counter we use to walk the fast path most of the time, but still
+        #       occasionally fall back to the long path
+        i = 0
         while numTasksRemaining > 0:
             numTasksRemaining = self._runNextTasks()
-            time.sleep(.001)
-            data = self._getAvailableData()
-            for testName, dataObj in data:
-                testResults[testName] = dataObj
 
+            # Rest a little bit to not interrupt the children too often
+            time.sleep(childCleanupDelay)
+            i += 1
+            if i >= 50:
+                # Every 50th run do the "Long" cleanup process method, which will
+                #    catch any processes that have died unexpectedly (like out of memory)
+                #  And clear any pending data on the pipe so it doesn't fill
+                i = 0
+
+                self._cleanupChildrenLong()
+
+                # Perform some data collection here, so that the our pipe doesn't fill up
+                data = self._getAvailableData()
+                for testName, dataObj in data:
+                    testResults[testName] = dataObj
+            else:
+                # For the most part, cleanup the processes that have self-reported being
+                #    done
+                self._cleanupChildrenDone()
 
         totalTimeEnd = time.time()
 
+        # Save data collection until the end
+        data = self._getAvailableData()
+        for testName, dataObj in data:
+            testResults[testName] = dataObj
 
 
         self.output('\n\n' + '=' * 50 + '\nSummary:\n')
@@ -413,7 +513,7 @@ class GoodTests(object):
         self.output('Test results (%d of %d PASS) Took %f total seconds to run.\n\n' %(sum([int(x[1]) for x in testResults.values()]), sum([int(x[2]) for x in testResults.values()]), totalTimeEnd - totalTimeStart ) )
 
 
-    def runTest(self, testFile, specificTestPattern=None):
+    def runTest(self, testFile, specificTestPattern=None, runnerIdx=None):
         '''
            runTest - Run a specific test file (where testFile is an importable python name [i.e. test_Something.py]).
            All classes beginning with 'Test' are going to be tested.
@@ -430,6 +530,11 @@ class GoodTests(object):
 
                         this pattern.
         '''
+        # Mark this "rjunner index." In the multiprocess scenario, this method is called with its index
+        #    in the self.runningProcesses list as #runnerIdx, and is used to self-mark when we are done.
+        #  For single-threaded scenario, this value is not used.
+        self.thisRunnerIdx = runnerIdx
+
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         oldDir = os.getcwd()
@@ -452,6 +557,7 @@ class GoodTests(object):
             ret = (failedResults, 0, 0)
             os.chdir(oldDir)
             self._childObjToParent((testFile, ret))
+            self._markThisRunnerDone()
             return ret
 
         testClasses = GoodTests._getTestClasses(module)
@@ -573,6 +679,8 @@ class GoodTests(object):
         self._childObjToParent((testFile, ret))
 
         os.chdir(oldDir)
+
+        self._markThisRunnerDone()
         return ret
 
 
