@@ -32,8 +32,8 @@ ALLOW_SITE_INSTALL = False
 # This is the test directory that should contain all your tests. This should be a directory in your "tests" folder
 MY_TEST_DIRECTORY = 'YourTestDir'
 
-__version__ = '2.2.0'
-__version_tuple__ = (2, 2, 0)
+__version__ = '2.3.0'
+__version_tuple__ = (2, 3, 0)
 
 def findGoodTests():
     '''

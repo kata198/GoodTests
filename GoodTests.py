@@ -45,7 +45,7 @@ VERSION_MAJOR = 2
 VERSION_MINOR = 3
 VERSION_PATCH = 0
 
-__version__ = "2.3.0rc1"
+__version__ = "2.3.0"
 
 __version_tuple__ = (2, 3, 0)
 

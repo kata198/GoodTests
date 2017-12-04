@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+'''
+    setup.py - Used to install GoodTests.py.
+
+        While GoodTests.py is licensed under the LGPL v2.1, this setup.py file specifically is Public Domain
+           or the nearest equivilant in your jurisdiction.
+'''
 
 from setuptools import setup
 
@@ -14,7 +20,7 @@ except:
 if __name__ == '__main__':
 
     setup(name='GoodTests',
-            version='2.3.0rc1',
+            version='2.3.0',
             scripts=['GoodTests.py'],
             author='Tim Savannah',
             author_email='kata198@gmail.com',
