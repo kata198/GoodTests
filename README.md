@@ -21,7 +21,7 @@ Some Features:
 *  Supports python 2 and python 3.
 *  Runs tests in parallel
 *  Each test class (should have one per file) runs in the same process. This allows you to get more performance by not setting up and tearing down similar data for each function, and allows sharing of state and knowledge (like if test\_constructor fails on a class, you know everything else is going to fail, so you can mark a flag "self.xWillFail" and assert at the beginning of functions.) Other advantages too
-
+*  Supports pdb mode (enabled via --pdb). See "Interactive Debugging" section below.
 
 GoodTests supports auto discovery of tests given a directory, by looking for files and classes that match the pattern (compatible with py.test)
 
@@ -51,11 +51,16 @@ Usage
 
 
 		-m [regexp]              - Run methods matching a specific pattern
+
 		-q                       - Quiet (only print failures)
+									  This will also disable stdout during test execution
+
 		-t                       - Print extra timing information
+
 
 		--no-colour              - Strip out colours from output
 		--no-color
+
 
 		--version                - Print version and copyright information
 		--help                   - Show this message
@@ -69,6 +74,21 @@ GoodTests can be used with -n to do multiple simultaneous executions (one proces
 GoodTests.py can be pointed toward any directory, and will load all files prefixed with test\_ (example: test\_Something.py)
 
 Output will contain colours, and lists all the failures (or passes) as they happen, and a consolidated list at the end:
+
+
+Interactive Debugging (pdb)
+---------------------------
+
+GoodTests.py supports an "interactive debugging" mode, which is toggled by passing "--pdb" as an argument on the commandline.
+
+When in "pdb mode" or "interactive debugging" mode, if an AssertionError (failed assertion) is raised, or another uncaught Exception during test execution, the following will occur:
+
+* A pdb shell is started in the frame at which the exception was raised. So if you had an assertion that failed, the shell would drop you at that point in the code, allowing you to inspect variables, etc. to help diagnose why the failure occured and correct the situation.
+
+* Once you enter "next" [n] or "continue" [c], the setup (if any) will be ran again, and you will be dropped into a pdb interactive shell starting at the top of the test function. This will allow you to walk through the code, change variables, call functions, and print values to understand and attempt to correct the situation inline. If, during this session, you correct the issue and the formerly failing assertion now passes, it will be marked as "PASS (debugger)" in the results. The original Traceback will be printed in the aggregate summary at the bottom of test results, noting that it did pass upon retry due to actions executed during your debug session.
+
+
+You may also choose to put a "pdb.set\_trace()" directly within your test or code somewhere. In order for this to work, you must ensure that maxRunners == 1 ( i.e. pass "-n1" as an argument ).
 
 
 Example
