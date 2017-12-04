@@ -112,8 +112,8 @@ class GoodTests(object):
         # If only to show failures
         self.printFailuresOnly = printFailuresOnly
         if printFailuresOnly is True:
-            devnull = open(os.devnull, 'w')
-            sys.stdout = devnull
+            self.origStdout = sys.stdout
+            self.devnull = open(os.devnull, 'wt')
 
         # List of testNames left to run
         self.testQueue = deque()
@@ -184,6 +184,24 @@ class GoodTests(object):
                     if inspectInfo[0].startswith('test')
         }
 
+
+    def _disableStdoutIfQuiet(self):
+        '''
+            _disableStdoutIfQuiet - If printFailuresOnly=True ( aka -q or "quiet mode" ), then disable stdout
+
+                @see _enableStdoutIfQuiet to re-enable
+        '''
+        if self.printFailuresOnly:
+            sys.stdout = self.devnull
+
+    def _enableStdoutIfQuiet(self):
+        '''
+            _enableStdoutIfQuiet - If printFailuresOnly=True (aka -q or "quiet mode" ), then re-enable stdout
+
+                @see _enableStdoutIfQuiet to disable
+        '''
+        if self.printFailuresOnly:
+            sys.stdout = self.origStdout
 
     def output(self, text):
         '''
@@ -566,6 +584,9 @@ class GoodTests(object):
         #  For single-threaded scenario, this value is not used.
         self.thisRunnerIdx = runnerIdx
 
+        # Disable stdout if in quiet mode
+        self._disableStdoutIfQuiet()
+
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         oldDir = os.getcwd()
@@ -717,6 +738,9 @@ class GoodTests(object):
 
         os.chdir(oldDir)
 
+        # re-enable stdout if quiet mode
+        self._enableStdoutIfQuiet()
+
         self._markThisRunnerDone()
         return ret
 
@@ -761,6 +785,10 @@ class GoodTests(object):
         '''
         if runUnderDebugger is False:
             self.lastTracebackMsg = ''
+
+            # Disable stdout if we are in "quiet" mode, and NOT re-running this method
+            #   under the debugger
+            self._disableStdoutIfQuiet()
 
         if isinstance(testFunction, types.MethodType):
             testFunctionName = testFunction.__name__
@@ -850,6 +878,9 @@ class GoodTests(object):
             else:
                 ret = ('PASS', '')
 
+        if runUnderDebugger:
+            # If we re-enabled stdout for the debugger, go ahead and disable it again before running teardown
+            self._disableStdoutIfQuiet()
         try:
             # Specific method teardown
 
@@ -881,6 +912,9 @@ class GoodTests(object):
 
                     @param excInfo - The sys.exc_info() tuple at time of exception
         '''
+
+        # Turn stdout back on when debugging, to see pdb prompt and any debug prints
+        self._enableStdoutIfQuiet()
 
         (orig_exc_type, orig_exc_value, orig_exc_traceback) = excInfo
         origTracebackInfo = ''.join(traceback.format_exception(orig_exc_type, orig_exc_value, orig_exc_traceback.tb_next))
@@ -941,8 +975,12 @@ def printUsage():
 
 
     -m [regexp]              - Run methods matching a specific pattern
+
     -q                       - Quiet (only print failures)
+                                  This will also disable stdout during test execution
+
     -t                       - Print extra timing information
+
 
     --no-colour              - Strip out colours from output
     --no-color
