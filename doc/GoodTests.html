@@ -6,7 +6,7 @@
 <table width="100%" cellspacing="0" cellpadding="2" border="0" summary="heading" >
 <tr bgcolor="#7799ee" >
 <td valign="bottom" >&nbsp;<br />
-<font color="#ffffff" face="helvetica, arial" >&nbsp;<br /><big ><big ><strong >GoodTests</strong></big></big> (version 2.3.0rc1)</font></td><td align="right" valign="bottom" ><font color="#ffffff" face="helvetica, arial" ><a href="GoodTests.html" >index</a></font></td></tr></table>
+<font color="#ffffff" face="helvetica, arial" >&nbsp;<br /><big ><big ><strong >GoodTests</strong></big></big> (version 2.3.0)</font></td><td align="right" valign="bottom" ><font color="#ffffff" face="helvetica, arial" ><a href="GoodTests.html" >index</a></font></td></tr></table>
     <p ><tt >Copyright&nbsp;2011,&nbsp;2015,&nbsp;2016,&nbsp;2017&nbsp;(c)&nbsp;Timothy&nbsp;Savannah&nbsp;under&nbsp;LGPLv2.1,&nbsp;All&nbsp;Rights&nbsp;Reserved.<br />
 &nbsp;<br />
 &nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;a&nbsp;LICENSE&nbsp;file&nbsp;was&nbsp;not&nbsp;included&nbsp;in&nbsp;this&nbsp;distribution,&nbsp;the&nbsp;license&nbsp;can&nbsp;be&nbsp;found<br />
@@ -104,7 +104,7 @@ Passes&nbsp;to&nbsp;parent&nbsp;(testFile,&nbsp;return&nbsp;value)<br />
 &nbsp;<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;pattern.</tt></dd></dl>
 
-<dl ><dt ><a name="GoodTests-runTestMethod" ><strong >runTestMethod</strong></a>(self, instantiatedTestClass, testFile, testFunction)</dt><dd ><tt >runTestMethod&nbsp;-&nbsp;Run&nbsp;a&nbsp;specific&nbsp;method&nbsp;in&nbsp;a&nbsp;specific&nbsp;test.<br />
+<dl ><dt ><a name="GoodTests-runTestMethod" ><strong >runTestMethod</strong></a>(self, instantiatedTestClass, testFile, testFunction, runUnderDebugger=False)</dt><dd ><tt >runTestMethod&nbsp;-&nbsp;Run&nbsp;a&nbsp;specific&nbsp;method&nbsp;in&nbsp;a&nbsp;specific&nbsp;test.<br />
 &nbsp;<br />
 setup_(methodName)&nbsp;will&nbsp;be&nbsp;run&nbsp;for&nbsp;paticular&nbsp;methodName,&nbsp;as&nbsp;well&nbsp;as&nbsp;setup_method&nbsp;(old&nbsp;school).<br />
 &nbsp;<br />
@@ -117,11 +117,23 @@ teardown_(methodName)&nbsp;will&nbsp;be&nbsp;run&nbsp;after&nbsp;method,&nbsp;or
 &nbsp;<br />
 &nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;testFunction&nbsp;&lt;method/str&gt;&nbsp;-&nbsp;string&nbsp;of&nbsp;test&nbsp;function&nbsp;name,&nbsp;or&nbsp;the&nbsp;function&nbsp;method&nbsp;itself<br />
 &nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;runUnderDebugger&nbsp;&lt;bool&gt;&nbsp;default&nbsp;False&nbsp;-&nbsp;If&nbsp;True,&nbsp;will&nbsp;execute&nbsp;this&nbsp;method&nbsp;under&nbsp;the&nbsp;debugger<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;is&nbsp;called&nbsp;when&nbsp;self.<strong >usePdb</strong>&nbsp;=&nbsp;True&nbsp;and&nbsp;an&nbsp;Exception&nbsp;is&nbsp;raised&nbsp;during&nbsp;test&nbsp;execution<br />
+&nbsp;<br />
 &nbsp;<br />
 @return&nbsp;tuple&lt;str,&nbsp;str&gt;&nbsp;-&nbsp;Returns&nbsp;a&nbsp;tuple&nbsp;of&nbsp;execution&nbsp;status<br />
 &nbsp;<br />
 &nbsp;&nbsp;&nbsp;&nbsp;first&nbsp;value&nbsp;is&nbsp;'PASS'&nbsp;or&nbsp;'FAIL'<br />
 &nbsp;&nbsp;&nbsp;&nbsp;second&nbsp;value&nbsp;is&nbsp;function's&nbsp;traceback&nbsp;or&nbsp;empty&nbsp;string</tt></dd></dl>
+
+<dl ><dt ><a name="GoodTests-runTestMethodDebugFailure" ><strong >runTestMethodDebugFailure</strong></a>(self, instantiatedTestClass, testFile, testFunction, excInfo)</dt><dd ><tt >runTestMethodDebugFailure&nbsp;-&nbsp;Resume&nbsp;a&nbsp;test&nbsp;method&nbsp;at&nbsp;a&nbsp;failure&nbsp;point.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@see&nbsp;runTestMethod<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;Additional:<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;excInfo&nbsp;-&nbsp;The&nbsp;sys.exc_info()&nbsp;tuple&nbsp;at&nbsp;time&nbsp;of&nbsp;exception</tt></dd></dl>
 
 <dl ><dt ><a name="GoodTests-runTests" ><strong >runTests</strong></a>(self, directories, files)</dt><dd ><tt >runTests&nbsp;-&nbsp;Run&nbsp;all&nbsp;tests&nbsp;in&nbsp;directories<br />
 &nbsp;<br />
