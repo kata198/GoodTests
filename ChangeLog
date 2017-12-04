@@ -1,6 +1,12 @@
 2.3.0 - ??? ?? ????
 
-- Bring back the "--pdb" switch. If an assertion fails in your test, this will drop you into the pdb debugger at the frame of failure ( i.e. you'll be brought to the line which had the failed assertion for inspection/debugging)
+- Bring back the --pdb switch
+
+  * When executing a test method, if an uncaught Exception is raised or an AssertionError occurs, you will be dropped into an interactive debugging shell (pdb) directly in the frame and on the line where that failure occured. This will allow you to inspect the variables at the time the failure occured in order to aid in debugging and problem resolution.
+
+  * After you enter "next" or "continue" from that first shell, the "setup" method (if present) for that test will be called again, and you will be dropped to a pdb prompt starting at the top of the method which originally gave the failure. This will allow you to inspect variables as the method progresses, make changes to values, etc. in order to quickly test a resolution inline. If the entire method passes while in this run (due to the changes you made), a new pass-like status will be issued for the result, 'PASS (debugger)'. The aggregate summary results will note that it failed originally, was fixed in an interactive debug session, and what the original traceback was.
+
+  * A "quick reference" guide is printed on the screen just above the pdb prompt, instructing novice users how to work the basic commands.
 
 - Change class and method search to use the 'inspect' module to replace all slow calls to dir() function. The performance improvement is most noticable on python2, which I benched at a 40% speed improvement on AdvancedHTMLParser test suite.
 
@@ -36,6 +42,15 @@ in some cases we should be limiting to test_. This was not intended behaviour, b
 - Fixup spacing in "--help" and document that "--version" is an option
 
 - Regenerate the README.rst from README.md using mdToRst (https://github.com/kata198/mdToRst) -- it had gotten out of date.
+
+- Change how "quiet mode" works. Instead of just globally disabling sys.stdout, which could cause issues if you, say, import GoodTests.py and have your own wrapper, and also would prevent the debugger from working properly, sys.stdout is disabled at the start of any test execution, re-enabled prior to dropping you to the debug shell in --pdb mode (and disabled again after that shell completes), and sys.stdout is enabled again at the completion of the test suite.
+
+- Refactor "main" function to return the exit code, rather than calling sys.exit directly. This allows you to more easilly import GoodTests.py and use the "main" function in your wrapper.
+
+- Generate pydocs and include them within the distribution, which may be useful to somebody.
+
+- Some other minor cleanups / improvements
+
 
 2.2.0 - Nov 19 2017
 
