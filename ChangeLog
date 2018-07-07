@@ -1,3 +1,9 @@
+3.0.1 - Jul 7 2018
+
+- If a test fails to compile (like from a syntax error), count it as 1 failed test (instead of 0, to prevent 100% score). Also fix an exception in handling this case, and log a note in summary.
+
+- Add a % passed to the final summary line
+
 3.0.0 - Dec 3 2017
 
 - Bring back the --pdb switch
