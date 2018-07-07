@@ -549,10 +549,18 @@ class GoodTests(object):
         totalTestCount = 0
         totalDebugPassCount = 0
 
-        for testResult in testResults.values():
+        for filename, testResult in testResults.items():
             totalPassCount += int(testResult[1])
-            totalTestCount += int(testResult[2])
+
+            numTests = int(testResult[2])
+            if numTests == -1:
+                # If -1, we failed to run the test. Log error in the summary
+                #  and set numTests to 1 (just so we don't get 100%)
+                self.output("FAILED TO RUN TEST %s (syntax error?)\n\n" %(filename, ))
+                numTests = 1
+            totalTestCount += numTests
             totalDebugPassCount += int(testResult[3])
+
 
         if totalDebugPassCount > 0:
             passedAfterDebugStr = " + ( %d PASSED after interactive debug ) " %(totalDebugPassCount, )
@@ -606,7 +614,7 @@ class GoodTests(object):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
             failedResults[moduleName] = [('FAIL', 'Failed to compile.\n' + tracebackInfo)]
-            ret = (failedResults, 0, 0)
+            ret = (failedResults, 0, -1, 0)
             os.chdir(oldDir)
             self._childObjToParent((testFile, ret))
             self._markThisRunnerDone()
