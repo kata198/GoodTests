@@ -561,13 +561,18 @@ class GoodTests(object):
             totalTestCount += numTests
             totalDebugPassCount += int(testResult[3])
 
+        passedPct = ( float(totalPassCount) / float(totalTestCount) ) * 100.0
 
         if totalDebugPassCount > 0:
-            passedAfterDebugStr = " + ( %d PASSED after interactive debug ) " %(totalDebugPassCount, )
+            passedAfterDebugPct = ( float(totalDebugPassCount) / float(totalTestCount) ) * 100.0
+            passedAfterDebugStr = " + ( %d PASSED after interactive debug [%.2f%%]) " %(totalDebugPassCount, passedAfterDebugPct )
         else:
             passedAfterDebugStr = ""
 
-        self.output('Test results (%d of %d PASS)%s Took %f total seconds to run.\n\n' %(totalPassCount, totalTestCount, passedAfterDebugStr, totalTimeEnd - totalTimeStart ) )
+
+        self.output('Test results (%d of %d PASS) [%.2f%%] %s Took %f total seconds to run.\n\n' % \
+            (totalPassCount, totalTestCount, passedPct, passedAfterDebugStr, totalTimeEnd - totalTimeStart ) 
+        )
 
 
     def runTest(self, testFile, specificTestPattern=None, runnerIdx=None):
