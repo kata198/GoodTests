@@ -666,6 +666,9 @@ class GoodTests(object):
 
                 testFunctions = testFunctionsFiltered
 
+            # If we did not match any test functions, do not call setup_class
+            if not testFunctions:
+                return (0, 0, 0, 0)
             # General setup_class
             setupSuccess = True
             try:
