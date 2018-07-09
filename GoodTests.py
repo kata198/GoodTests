@@ -561,10 +561,16 @@ class GoodTests(object):
             totalTestCount += numTests
             totalDebugPassCount += int(testResult[3])
 
-        passedPct = ( float(totalPassCount) / float(totalTestCount) ) * 100.0
+        if totalTestCount > 0:
+            passedPct = ( float(totalPassCount) / float(totalTestCount) ) * 100.0
+        else:
+            passedPct = 0
 
         if totalDebugPassCount > 0:
-            passedAfterDebugPct = ( float(totalDebugPassCount) / float(totalTestCount) ) * 100.0
+            if totalTestCount > 0:
+                passedAfterDebugPct = ( float(totalDebugPassCount) / float(totalTestCount) ) * 100.0
+            else:
+                passedAfterDebugPct = 0.0
             passedAfterDebugStr = " + ( %d PASSED after interactive debug [%.2f%%]) " %(totalDebugPassCount, passedAfterDebugPct )
         else:
             passedAfterDebugStr = ""
