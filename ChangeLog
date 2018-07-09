@@ -1,3 +1,7 @@
+3.0.2 - Jul 8 2018
+
+- Fix a possible divide-by-zero in new percent calculating code when no tests are ran (like a -m with no matches)
+
 3.0.1 - Jul 7 2018
 
 - If a test fails to compile (like from a syntax error), count it as 1 failed test (instead of 0, to prevent 100% score). Also fix an exception in handling this case, and log a note in summary.
