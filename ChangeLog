@@ -1,3 +1,8 @@
+3.0.3 - Jul 8 2018
+
+- Do not execute setup_class or teardown_class on test classes with 0 matched test functions (like with -m flag)
+
+
 3.0.2 - Jul 8 2018
 
 - Fix a possible divide-by-zero in new percent calculating code when no tests are ran (like a -m with no matches)
