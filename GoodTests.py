@@ -43,11 +43,11 @@ COLOUR_RE = re.compile('\033\[[\d]+([;][\d]+){0,1}[m]')
 
 VERSION_MAJOR = 3
 VERSION_MINOR = 0
-VERSION_PATCH = 3
+VERSION_PATCH = 4
 
-__version__ = "3.0.3"
+__version__ = "3.0.4"
 
-__version_tuple__ = (3, 0, 3)
+__version_tuple__ = (3, 0, 4)
 
 VERSION = "%d.%d.%d" %(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
 
