@@ -1,5 +1,5 @@
 
-3.0.4 - Jul 8 2018
+3.0.4 - Nov 1 2018
 
 - distrib/runTests.py - Update to fix DeprecationWarning using python 3.7
 
