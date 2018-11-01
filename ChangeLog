@@ -1,3 +1,8 @@
+
+3.0.4 - Jul 8 2018
+
+- distrib/runTests.py - Update to fix DeprecationWarning using python 3.7
+
 3.0.3 - Jul 8 2018
 
 - Do not execute setup_class or teardown_class on test classes with 0 matched test functions (like with -m flag)
