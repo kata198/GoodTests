@@ -603,6 +603,13 @@ class GoodTests(object):
         #  For single-threaded scenario, this value is not used.
         self.thisRunnerIdx = runnerIdx
 
+        # List of tasks to run at cleanup
+        _cleanupEnvironmentTasks = []
+        def _cleanupEnvironment():
+            for task in _cleanupEnvironmentTasks:
+                task()
+
+
         # Disable stdout if in quiet mode
         self._disableStdoutIfQuiet()
 
@@ -610,8 +617,22 @@ class GoodTests(object):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         oldDir = os.getcwd()
         if os.sep in testFile:
+            # Change to test directory to execute locally
             (testFileDir, testFile) = os.path.split(testFile)
+
             os.chdir(testFileDir)
+
+            # Undo this change on exit
+            _cleanupEnvironmentTasks.append( lambda : os.chdir(oldDir) )
+
+            # Python 3.9 doesn't seem to recalculate the "." in sys.path, so explicitly add
+            #   the directory so imports work
+            newDir = os.getcwd()
+            if newDir not in sys.path:
+                sys.path.append(newDir)
+
+                _cleanupEnvironmentTasks.append( lambda : sys.path.remove(newDir) )
+                sys.path.append(os.getcwd())
 
         moduleName = re.sub('.py$', '', testFile)
         try:
@@ -626,7 +647,8 @@ class GoodTests(object):
             tracebackInfo = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
             failedResults[moduleName] = [('FAIL', 'Failed to compile.\n' + tracebackInfo)]
             ret = (failedResults, 0, -1, 0)
-            os.chdir(oldDir)
+
+            _cleanupEnvironment()
             self._childObjToParent((testFile, ret))
             self._markThisRunnerDone()
             return ret
@@ -758,7 +780,7 @@ class GoodTests(object):
         ret = (failedResults, passCount, testsRunCount, debugPassCount)
         self._childObjToParent((testFile, ret))
 
-        os.chdir(oldDir)
+        _cleanupEnvironment()
 
         # re-enable stdout if quiet mode
         self._enableStdoutIfQuiet()
