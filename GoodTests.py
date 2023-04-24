@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
     Copyright 2011, 2015, 2016, 2017, 2018 (c) Timothy Savannah under LGPLv2.1, All Rights Reserved.
-  
+
         If a LICENSE file was not included in this distribution, the license can be found
 
           at https://github.com/kata198/GoodTests/blob/master/LICENSE
@@ -85,7 +85,7 @@ class GoodTests(object):
                     For example, specificTestPattern="smoke" will only run test methods which contain 'smoke' in the name.
 
         '''
-        
+
         self.usePdb = usePdb
         if usePdb and maxRunners > 1:
             sys.stderr.write('WARNING: pdb mode enabled, but maxRunners (number of processes, -n) was > 1 (%d). Setting to 1 to support pdb.\n\n')
@@ -254,7 +254,7 @@ class GoodTests(object):
         '''
         if not self.communicationPipe[0].poll():
             return None
-        
+
         obj = self.communicationPipe[0].recv()
 
         return obj
@@ -306,7 +306,7 @@ class GoodTests(object):
     def _cleanupChildrenLong(self):
         '''
             _cleanupChildrenLong - Iterate through every entry in the self.runningProcesses list of children,
-               
+
                                         and poll them to see if they have stopped running.
 
                 There is a significant overhead to polling child processes, so this should only be called
@@ -810,7 +810,7 @@ class GoodTests(object):
 
            teardown_(methodName) will be run after method, or teardown_method (old school).
 
-           
+
                @param instantiatedTestClass - module that has been initted
 
                @param testFile - string name of origin file
@@ -886,7 +886,7 @@ class GoodTests(object):
             theTuple = self._getTestLineStart(instantiatedTestClass, testFile, testFunctionName) + (tracebackInfo,)
             self.output("\n\033[93m%s - %s.%s \033[91mFAIL \033[93m*****Debugger Aborted During Execution*****\n\033[91m%s\033[0m" % theTuple)
             ret = ('FAIL', tracebackInfo)
-            
+
         except Exception as e:
             # Exception while running test
             excInfo = sys.exc_info()
@@ -1078,10 +1078,10 @@ def main(args):
     if sys.platform == 'win32':
         # Don't try colour if running on dos
         useColour = False
-    
+
     numArgs = len(args)
     i = 0
-    
+
     argPaths = []
 
     helpArgs = ('--help', '-h', '-?')
