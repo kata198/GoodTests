@@ -1,3 +1,8 @@
+3.0.7 - Jul 2 2023
+- Fix deprecation warning and using fallback "imp" module in
+distrib/runTests.py. Properly import importlib.util on newer versions of
+python
+
 3.0.6 - Apr 24 2023
 - Fix issue in inability to run like GoodTests.py SubFolder/test_Something.py on python 3.9 due to sys.path "." entry not being re-evaluated after chdir
 
